@@ -16,5 +16,5 @@ test('mobile menu works', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 })
   await page.goto('/')
   await page.click('button[aria-label="menu"]')
-  await expect(page.getByRole('navigation').getByRole('link', { name: 'Download for Windows' })).toBeVisible()
+  await expect(page.getByRole('navigation').getByRole('link', { name: 'Download Now' })).toBeVisible()
 })

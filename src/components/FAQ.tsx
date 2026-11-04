@@ -21,19 +21,19 @@ export default function FAQ() {
     <section id="faq" className="py-28">
       <div className="max-w-3xl mx-auto px-6">
         <div className="text-center mb-12">
-          <p className="text-sm uppercase tracking-[0.3em] text-[#A1A1B5] mb-3">FAQ</p>
+          <p className="text-xs uppercase tracking-[0.4em] text-[#FF1025] font-semibold mb-3">FAQ</p>
           <h2 className="text-4xl md:text-5xl font-bold">Questions</h2>
         </div>
         <div className="space-y-3">
           {faqs.map((f, i) => (
             <div key={f.q} className="glass rounded-xl overflow-hidden">
               <button onClick={() => setOpen(open === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left">
-                <span className="font-medium">{f.q}</span>
-                <ChevronDown className={`transition-transform ${open === i ? 'rotate-180' : ''}`} />
+                <span className="font-medium text-[#C4C4CC]">{f.q}</span>
+                <ChevronDown className={`transition-transform text-[#92929E] ${open === i ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {open === i && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5 text-sm text-[#A1A1B5]">
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-5 pb-5 text-sm text-[#92929E]">
                     {f.a}
                   </motion.div>
                 )}

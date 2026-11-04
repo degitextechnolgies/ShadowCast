@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #080810;
-  --bg-2: #10101C;
-  --card: #141422;
-  --purple: #8B5CF6;
-  --blue: #4285FF;
-  --violet: #B66CFF;
+  --bg: #050507;
+  --bg-2: #0B080B;
+  --deep: #020204;
+  --red: #FF1025;
+  --crimson: #D90020;
+  --bright-red: #FF303A;
+  --dark-crimson: #65000F;
   --text: #FFFFFF;
-  --text-2: #A1A1B5;
-  --border: #27243A;
+  --text-2: #C4C4CC;
+  --muted: #92929E;
+  --border: #1a151a;
 }
 
 html { scroll-behavior: smooth; overflow-x: clip; }
@@ -37,21 +39,13 @@ body {
 }
 
 .glass {
-  background: rgba(20,20,34,0.55);
+  background: rgba(11, 8, 11, 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(39,36,58,0.6);
+  border: 1px solid rgba(101, 0, 15, 0.5);
 }
 
-.grad-text {
-  background: linear-gradient(120deg, #8B5CF6, #4285FF, #B66CFF);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.noise {
-  background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
-  background-size: 3px 3px;
+.red-glow {
+  box-shadow: 0 0 24px rgba(255, 16, 37, 0.45);
 }
 
