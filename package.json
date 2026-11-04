@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "playwright test",
-    "deploy": "wrangler pages deploy dist"
+    "deploy": "wrangler pages deploy dist --project-name=shadowcasting"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -27,13 +27,17 @@
     "three": "^0.187.0"
   },
   "devDependencies": {
+    "@oxlint/binding-win32-x64-msvc": "^1.91.0",
     "@playwright/test": "^1.64.1",
+    "@rolldown/binding-win32-x64-msvc": "^1.2.16",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
     "@vitejs/plugin-react": "^6.1.2",
     "oxlint": "^1.89.0",
     "typescript": "~7.0.2",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "wrangler": "^4.157.0"
   }
 }

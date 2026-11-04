@@ -1,3 +1,4 @@
+const CURRENT_YEAR = new Date().getFullYear()
 
 export default function Footer() {
   return (
@@ -30,7 +31,7 @@ export default function Footer() {
           </div>
         ))}
       </div>
-      <div className="max-w-7xl mx-auto px-6 mt-12 text-[10px] text-[#92929E] border-t border-[#1a151a]/50 pt-6">© {new Date().getFullYear()} Shadow Cast. All rights reserved.</div>
+      <div className="max-w-7xl mx-auto px-6 mt-12 text-[10px] text-[#92929E] border-t border-[#1a151a]/50 pt-6">© {CURRENT_YEAR} Shadow Cast. All rights reserved.</div>
     </footer>
   )
 }

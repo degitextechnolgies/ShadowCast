@@ -2,12 +2,12 @@ import { motion } from 'framer-motion'
 import { Zap, Monitor, Smartphone, Shield, Layers, Gamepad2 } from 'lucide-react'
 
 const features = [
-  { icon: Zap, title: 'Ultra-Low Latency', desc: 'Mirror your device over the network.' },
-  { icon: Monitor, title: 'High-Quality Streaming', desc: 'Optimized streaming pipeline.' },
-  { icon: Smartphone, title: 'Cross-Device Compatibility', desc: 'Connect PC, laptop, phone and tablet.' },
-  { icon: Shield, title: 'Secure Connections', desc: 'Protected mirroring sessions.' },
-  { icon: Layers, title: 'Seamless Screen Mirroring', desc: 'Multiple device management.' },
-  { icon: Gamepad2, title: 'Gaming-Ready Performance', desc: 'Built for gaming responsiveness.' },
+  { icon: Zap, title: 'Ultra-Low Latency', desc: 'Mirror your device over the network with instantaneous response.' },
+  { icon: Monitor, title: 'High-Quality Streaming', desc: 'Optimized 4K streaming pipeline with true 1:1 color fidelity.' },
+  { icon: Smartphone, title: 'Cross-Device Compatibility', desc: 'Connect PC, laptop, iPhone, Android and tablet seamlessly.' },
+  { icon: Shield, title: 'Secure Connections', desc: 'Hardware-verified PIN pairing and protected mirroring sessions.' },
+  { icon: Layers, title: 'Seamless Screen Mirroring', desc: 'Multi-screen streaming and device management side-by-side.' },
+  { icon: Gamepad2, title: 'Gaming-Ready Performance', desc: 'Built for sub-millisecond responsiveness with gamepad passthrough.' },
 ]
 
 export default function Features() {
@@ -26,13 +26,12 @@ export default function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: (i % 3) * 0.08 }}
-              whileHover={{ y: -6 }}
-              className="glass rounded-2xl p-6 hover:border-[#FF1025]/50 transition-colors"
+              className="glass rounded-2xl p-6 hover:border-[#FF1025]/50 hover:-translate-y-1 transition-all duration-200 cursor-default"
             >
               <div className="w-10 h-10 rounded-lg bg-[#FF1025]/10 flex items-center justify-center mb-4 border border-[#FF1025]/20">
                 <f.icon size={18} className="text-[#FF1025]" />
               </div>
-              <h3 className="font-semibold mb-1">{f.title}</h3>
+              <h3 className="font-semibold mb-1 text-white">{f.title}</h3>
               <p className="text-sm text-[#92929E]">{f.desc}</p>
             </motion.div>
           ))}

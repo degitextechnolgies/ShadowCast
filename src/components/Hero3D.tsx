@@ -1,27 +1,56 @@
-import { useRef, useState, useEffect, useMemo } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useRef, useState, useEffect } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 import * as THREE from 'three'
 import samuraiImg from '../assets/samurai.svg'
 
 const textureLoader = new THREE.TextureLoader()
 
-const moonCanvas = document.createElement('canvas')
-moonCanvas.width = 512
-moonCanvas.height = 512
-const moonCtx = moonCanvas.getContext('2d')!
-moonCtx.fillStyle = '#d90020'
-moonCtx.fillRect(0, 0, 512, 512)
-moonCtx.fillStyle = '#65000f'
-for (let i = 0; i < 40; i++) {
-  const x = Math.random() * 512
-  const y = Math.random() * 512
-  const r = 8 + Math.random() * 40
-  moonCtx.beginPath()
-  moonCtx.arc(x, y, r, 0, Math.PI * 2)
-  moonCtx.fill()
+// Pre-load samurai texture once to prevent per-frame texture allocation
+const samuraiTex = textureLoader.load(samuraiImg)
+samuraiTex.colorSpace = THREE.SRGBColorSpace
+
+const moonCanvas = typeof document !== 'undefined' ? document.createElement('canvas') : null
+let moonDetailTex: THREE.CanvasTexture | null = null
+if (moonCanvas) {
+  moonCanvas.width = 512
+  moonCanvas.height = 512
+  const moonCtx = moonCanvas.getContext('2d')
+  if (moonCtx) {
+    moonCtx.fillStyle = '#d90020'
+    moonCtx.fillRect(0, 0, 512, 512)
+    moonCtx.fillStyle = '#65000f'
+    for (let i = 0; i < 40; i++) {
+      const x = Math.random() * 512
+      const y = Math.random() * 512
+      const r = 8 + Math.random() * 40
+      moonCtx.beginPath()
+      moonCtx.arc(x, y, r, 0, Math.PI * 2)
+      moonCtx.fill()
+    }
+  }
+  moonDetailTex = new THREE.CanvasTexture(moonCanvas)
 }
-const moonDetailTex = new THREE.CanvasTexture(moonCanvas)
+
+// Lightweight passive mouse coordinates (no React re-renders or raycaster overhead)
+const mouse = { x: 0, y: 0 }
+if (typeof window !== 'undefined') {
+  let scheduled = false
+  window.addEventListener(
+    'mousemove',
+    (e) => {
+      if (!scheduled) {
+        requestAnimationFrame(() => {
+          mouse.x = (e.clientX / window.innerWidth) * 2 - 1
+          mouse.y = -(e.clientY / window.innerHeight) * 2 + 1
+          scheduled = false
+        })
+        scheduled = true
+      }
+    },
+    { passive: true }
+  )
+}
 
 function Moon() {
   const ref = useRef<THREE.Mesh>(null)
@@ -33,10 +62,10 @@ function Moon() {
   })
   return (
     <mesh ref={ref} position={[1.6, 2.2, -10]} scale={[5.2, 5.2, 5.2]}>
-      <sphereGeometry args={[1, 64, 64]} />
+      <sphereGeometry args={[1, 32, 32]} />
       <meshStandardMaterial
         color="#ff1025"
-        map={moonDetailTex}
+        map={moonDetailTex || undefined}
         emissive="#ff1025"
         emissiveIntensity={0.5}
       />
@@ -54,7 +83,7 @@ function MoonGlow() {
   })
   return (
     <mesh ref={ref} position={[1.6, 2.2, -9.6]} scale={[6.2, 6.2, 6.2]}>
-      <sphereGeometry args={[1, 64, 64]} />
+      <sphereGeometry args={[1, 24, 24]} />
       <meshBasicMaterial color="#ff1025" transparent opacity={0.35} depthWrite={false} />
     </mesh>
   )
@@ -62,7 +91,6 @@ function MoonGlow() {
 
 function Samurai() {
   const ref = useRef<THREE.Sprite>(null)
-  const { pointer } = useThree()
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -75,16 +103,14 @@ function Samurai() {
     if (!ref.current || !ready) return
     const time = state.clock.elapsedTime
     ref.current.position.y = -1.0 + Math.sin(time * 1.2) * 0.06
-    ref.current.position.x = 1.1 + pointer.x * 0.18
-    ref.current.rotation.y = pointer.x * 0.08
+    ref.current.position.x = 1.1 + mouse.x * 0.18
+    ref.current.rotation.y = mouse.x * 0.08
   })
 
   if (!ready) return null
-  const tex = textureLoader.load(samuraiImg)
-  tex.colorSpace = THREE.SRGBColorSpace
   return (
     <sprite ref={ref} position={[1.1, -1.0, -4]} scale={[4.6, 6.2, 1]}>
-      <spriteMaterial map={tex} transparent opacity={1} />
+      <spriteMaterial map={samuraiTex} transparent opacity={1} />
     </sprite>
   )
 }
@@ -158,48 +184,79 @@ function Mountains() {
   )
 }
 
-const leafCanvas = document.createElement('canvas')
-leafCanvas.width = 64
-leafCanvas.height = 64
-const lc = leafCanvas.getContext('2d')!
-lc.fillStyle = '#ff1025'
-lc.beginPath()
-lc.moveTo(32, 4); lc.bezierCurveTo(48, 4, 60, 28, 32, 60); lc.bezierCurveTo(4, 28, 16, 4, 32, 4)
-lc.fill()
-const leafTex = new THREE.CanvasTexture(leafCanvas)
+const leafCanvas = typeof document !== 'undefined' ? document.createElement('canvas') : null
+let leafTex: THREE.CanvasTexture | null = null
+if (leafCanvas) {
+  leafCanvas.width = 64
+  leafCanvas.height = 64
+  const lc = leafCanvas.getContext('2d')
+  if (lc) {
+    lc.fillStyle = '#ff1025'
+    lc.beginPath()
+    lc.moveTo(32, 4); lc.bezierCurveTo(48, 4, 60, 28, 32, 60); lc.bezierCurveTo(4, 28, 16, 4, 32, 4)
+    lc.fill()
+  }
+  leafTex = new THREE.CanvasTexture(leafCanvas)
+}
+
+const LEAF_COUNT = 100
+const LEAF_POSITIONS = (() => {
+  const arr = new Float32Array(LEAF_COUNT * 3)
+  let seed = 42
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647
+    return (seed - 1) / 2147483646
+  }
+  for (let i = 0; i < LEAF_COUNT; i++) {
+    arr[i * 3] = (rand() - 0.5) * 22
+    arr[i * 3 + 1] = (rand() - 0.5) * 16
+    arr[i * 3 + 2] = (rand() - 0.5) * 10
+  }
+  return arr
+})()
+
+const LEAF_OFFSETS = (() => {
+  const arr = new Float32Array(LEAF_COUNT)
+  let seed = 99
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647
+    return (seed - 1) / 2147483646
+  }
+  for (let i = 0; i < LEAF_COUNT; i++) arr[i] = rand() * Math.PI * 2
+  return arr
+})()
+
+const LEAF_SPEEDS = (() => {
+  const arr = new Float32Array(LEAF_COUNT)
+  let seed = 123
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647
+    return (seed - 1) / 2147483646
+  }
+  for (let i = 0; i < LEAF_COUNT; i++) arr[i] = 0.4 + rand() * 0.8
+  return arr
+})()
 
 function MapleLeaves() {
-  const count = 120
-  const positions = useMemo(() => {
-    const arr = new Float32Array(count * 3)
-    for (let i = 0; i < count; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 22
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 16
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 10
-    }
-    return arr
-  }, [])
-  const offsets = useMemo(() => new Float32Array(count).map(() => Math.random() * Math.PI * 2), [])
-  const speeds = useMemo(() => new Float32Array(count).map(() => 0.4 + Math.random() * 0.8), [])
   const ref = useRef<THREE.Points>(null)
   useFrame((state) => {
     if (!ref.current) return
     const time = state.clock.elapsedTime
     const pos = ref.current.geometry.attributes.position.array as Float32Array
-    for (let i = 0; i < count; i++) {
-      pos[i * 3 + 1] -= speeds[i] * 0.016
+    for (let i = 0; i < LEAF_COUNT; i++) {
+      pos[i * 3 + 1] -= LEAF_SPEEDS[i] * 0.016
       if (pos[i * 3 + 1] < -9) pos[i * 3 + 1] = 9
-      pos[i * 3] += Math.sin(time * 0.5 + offsets[i]) * 0.005
+      pos[i * 3] += Math.sin(time * 0.5 + LEAF_OFFSETS[i]) * 0.005
     }
     ref.current.geometry.attributes.position.needsUpdate = true
   })
   return (
     <points ref={ref}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-position" args={[LEAF_POSITIONS, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        map={leafTex}
+        map={leafTex || undefined}
         transparent
         color="#ff303a"
         size={0.14}
@@ -236,17 +293,46 @@ function Fog() {
 }
 
 export default function Hero3D() {
+  const [isInView, setIsInView] = useState(true)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting)
+      },
+      { threshold: 0.01 }
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <div className="absolute inset-0 -z-0 overflow-hidden">
+    <div
+      ref={containerRef}
+      className="absolute inset-0 -z-0 overflow-hidden pointer-events-none select-none"
+      style={{ pointerEvents: 'none' }}
+    >
       <Canvas
+        frameloop={isInView ? 'always' : 'never'}
         camera={{ position: [0, 0, 5.2], fov: 45 }}
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true, premultipliedAlpha: false }}
+        dpr={1}
+        style={{ pointerEvents: 'none' }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: 'high-performance',
+          premultipliedAlpha: false,
+        }}
       >
         <color attach="background" args={['#050507']} />
         <fog attach="fog" args={['#050507', 8, 26]} />
-        <ambientLight intensity={0.12} />
-        <directionalLight position={[3, 6, 4]} intensity={0.9} color="#ff1025" castShadow />
+        <ambientLight intensity={0.15} />
+        <directionalLight position={[3, 6, 4]} intensity={0.9} color="#ff1025" />
         <pointLight position={[1.6, 2.2, -10]} intensity={2.5} distance={45} decay={1.6} color="#ff1025" />
         <pointLight position={[-3, 1, -5]} intensity={0.8} distance={30} color="#d90020" />
         <MoonGlow />
@@ -257,7 +343,7 @@ export default function Hero3D() {
         <Fog />
         <MapleLeaves />
         <Samurai />
-        <Stars radius={55} depth={55} count={700} factor={3} saturation={0} speed={0.4} />
+        <Stars radius={55} depth={55} count={500} factor={3} saturation={0} speed={0.4} />
       </Canvas>
     </div>
   )

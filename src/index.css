@@ -14,8 +14,11 @@
   --border: #1a151a;
 }
 
-html { scroll-behavior: smooth; overflow-x: clip; }
-body { overflow-x: clip; }
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  background-color: var(--bg);
+}
 
 body {
   margin: 0;
@@ -23,12 +26,13 @@ body {
   color: var(--text);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
 * { box-sizing: border-box; }
 
-#root { max-width: none; margin: 0; text-align: left; border: none; }
+#root { max-width: none; margin: 0; text-align: left; border: none; min-height: 100vh; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -38,14 +42,19 @@ body {
   }
 }
 
+/* Fast, GPU-optimized surface styling without blur repaint spikes */
 .glass {
-  background: rgba(11, 8, 11, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(101, 0, 15, 0.5);
+  background: rgba(14, 11, 14, 0.9);
+  border: 1px solid rgba(101, 0, 15, 0.4);
+}
+
+.glass-nav {
+  background: rgba(8, 6, 8, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(101, 0, 15, 0.35);
 }
 
 .red-glow {
   box-shadow: 0 0 24px rgba(255, 16, 37, 0.45);
 }
-
