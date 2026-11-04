@@ -4,10 +4,10 @@ import { ArrowRight, Download } from 'lucide-react'
 export default function Hero() {
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-24">
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[#080810]" />
-        <motion.div animate={{ x: [0, 40, 0], y: [0, -30, 0] }} transition={{ duration: 18, repeat: Infinity, ease: 'linear' }} className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-purple-600/30 blur-[120px]" />
-        <motion.div animate={{ x: [0, -50, 0], y: [0, 40, 0] }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }} className="absolute top-20 right-[-120px] w-[500px] h-[500px] rounded-full bg-blue-600/30 blur-[120px]" />
+        <motion.div animate={{ x: [0, 40, 0], y: [0, -30, 0] }} transition={{ duration: 18, repeat: Infinity, ease: 'linear' }} className="absolute -top-40 -left-40 w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] rounded-full bg-purple-600/30 blur-[120px]" />
+        <motion.div animate={{ x: [0, -50, 0], y: [0, 40, 0] }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }} className="absolute top-20 right-[-120px] w-[250px] h-[250px] sm:w-[500px] sm:h-[500px] rounded-full bg-blue-600/30 blur-[120px]" />
         <div className="absolute inset-0 noise opacity-40" />
       </div>
       <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center w-full">
@@ -25,7 +25,7 @@ export default function Hero() {
           </motion.div>
         </div>
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, duration: 0.8 }} className="relative">
-          <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} className="relative mx-auto w-full max-w-[520px]">
+          <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} className="relative mx-auto w-full max-w-full sm:max-w-[520px]">
             <div className="rounded-2xl border border-[#27243A] bg-[#141422] shadow-2xl shadow-purple-900/40 overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-[#27243A]">
                 <span className="w-3 h-3 rounded-full bg-red-400" /><span className="w-3 h-3 rounded-full bg-yellow-400" /><span className="w-3 h-3 rounded-full bg-green-400" />
@@ -43,7 +43,7 @@ export default function Hero() {
                 </div>
               </div>
             </div>
-            <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="absolute -bottom-6 -right-6 w-28 h-44 rounded-2xl border border-[#27243A] bg-[#141422] shadow-xl shadow-blue-900/40 overflow-hidden">
+            <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} className="absolute -bottom-4 -right-2 sm:-bottom-6 sm:-right-6 w-20 h-32 sm:w-28 sm:h-44 rounded-2xl border border-[#27243A] bg-[#141422] shadow-xl shadow-blue-900/40 overflow-hidden">
               <div className="h-full bg-gradient-to-b from-purple-900/30 to-blue-900/30 flex items-center justify-center text-[10px] text-[#A1A1B5]">Phone</div>
             </motion.div>
             <div className="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-2xl" />

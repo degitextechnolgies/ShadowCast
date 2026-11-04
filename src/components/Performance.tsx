@@ -29,7 +29,7 @@ export default function Performance() {
             <span className="text-sm text-[#A1A1B5]">Data flow</span>
             <span className="text-xs text-green-400">● Active</span>
           </div>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             {['Device', 'Capture', 'Decode', 'Display'].map((s, i) => (
               <div key={s} className="flex items-center gap-2">
                 <div className="px-3 py-2 rounded-lg bg-[#10101C] text-sm">{s}</div>
