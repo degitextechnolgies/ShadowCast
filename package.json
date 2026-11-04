@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "playwright test"
+    "test": "playwright test",
+    "deploy": "wrangler pages deploy dist"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
