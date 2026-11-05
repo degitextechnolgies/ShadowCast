@@ -501,3 +501,38 @@ Suggested `.github/CODEOWNERS` file at repository root:
 ```
 
 - **GSAP** and **Lenis** imported but currently have minimal active usage (considered for future scroll-choreography).
+
+## 8. Cloudflare Pages CI/CD
+
+The website is a **React 19 + Vite SPA** deployed on Cloudflare Pages.
+
+### Commands
+
+- **Build:** `npm run build`  → outputs to `dist/`
+- **Deploy:** `wrangler pages deploy`  (Cloudflare Pages)
+
+### Why not `npx wrangler deploy`?
+
+`wrangler deploy` is the **Workers** CLI command. It cannot deploy a Pages site
+and fails with:
+
+> Missing entry-point to Worker script or to assets directory
+> Unexpected fields found in build field: "upload"
+
+The correct command for this Pages project is `wrangler pages deploy`
+(or `npx wrangler pages deploy`). The Cloudflare Pages **Deploy command**
+setting in the dashboard must be `npx wrangler pages deploy`.
+
+### `wrangler.toml`
+
+```toml
+name = "shadowcasting"
+compatibility_date = "2024-09-23"
+
+[build]
+command = "npm run build"
+
+[build.upload]
+directory = "dist"
+```
+
