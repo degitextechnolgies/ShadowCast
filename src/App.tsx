@@ -23,7 +23,9 @@ import ResetPassword from './pages/ResetPassword'
 import AuthCallback from './pages/AuthCallback'
 import Dashboard from './pages/Dashboard'
 import Admin from './pages/Admin'
+import AdminLogin from './pages/AdminLogin'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { AdminRoute } from './components/auth/AdminRoute'
 
 /**
  * Main Landing Page Component
@@ -117,8 +119,16 @@ export default function App() {
               }
             />
 
-            {/* Admin Command Center */}
-            <Route path="/admin" element={<Admin />} />
+            {/* Admin Command Center (Guarded by Admin Clearance) */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              }
+            />
 
             {/* Catch-all fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

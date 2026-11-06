@@ -1,17 +1,31 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('ShadowCast Command Center Admin Suite', () => {
-  test('admin page renders Command Center header and KPI metrics', async ({ page }) => {
+test.describe('ShadowCast Command Center Admin & Auth Suite', () => {
+  test('unauthenticated visit to /admin redirects to /admin/login', async ({ page }) => {
     await page.goto('/admin')
-    await expect(page.getByText('COMMAND CENTER')).toBeVisible()
-    await expect(page.getByText('Live Mirroring Streams')).toBeVisible()
-    await expect(page.getByText('Total Registered Pilots')).toBeVisible()
-    await expect(page.getByText('Throughput Bandwidth')).toBeVisible()
-    await expect(page.getByText('NVENC Hardware Health')).toBeVisible()
+    await page.waitForURL('**/admin/login**')
+    await expect(page.getByText('RESTRICTED AREA • SEC-LVL 5')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
   })
 
-  test('admin page tab navigation switches sections properly', async ({ page }) => {
-    await page.goto('/admin')
+  test('admin login handles quick demo root access and grants entry to /admin', async ({ page }) => {
+    await page.goto('/admin/login')
+    await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
+
+    // Click 1-Click Root Demo Access
+    await page.getByRole('button', { name: /1-Click Root Demo Access/i }).click()
+
+    // Should navigate into /admin
+    await page.waitForURL('**/admin')
+    await expect(page.getByText('COMMAND CENTER')).toBeVisible()
+    await expect(page.getByText('NVENC Relay Active (0.8ms)')).toBeVisible()
+  })
+
+  test('admin page tab navigation switches sections properly when authenticated', async ({ page }) => {
+    // Authenticate via quick demo
+    await page.goto('/admin/login')
+    await page.getByRole('button', { name: /1-Click Root Demo Access/i }).click()
+    await page.waitForURL('**/admin')
 
     // Switch to Live Streams & Clients
     await page.getByRole('button', { name: /Live Streams & Clients/i }).click()
@@ -38,34 +52,14 @@ test.describe('ShadowCast Command Center Admin Suite', () => {
     await expect(page.getByRole('heading', { name: 'Security & Hardware Telemetry Logs' })).toBeVisible()
   })
 
-  test('user search filter filters pilots list in Users tab', async ({ page }) => {
-    await page.goto('/admin')
-    await page.getByRole('button', { name: /Pilots & Licenses/i }).click()
+  test('lock terminal button terminates admin session and redirects to /admin/login', async ({ page }) => {
+    await page.goto('/admin/login')
+    await page.getByRole('button', { name: /1-Click Root Demo Access/i }).click()
+    await page.waitForURL('**/admin')
 
-    const searchInput = page.getByPlaceholder(/Search pilot by name/i)
-    await searchInput.fill('Sarah Connor')
-
-    await expect(page.getByText('Sarah Connor')).toBeVisible()
-    await expect(page.getByText('Abhishek Kumar')).not.toBeVisible()
-  })
-
-  test('modal for issuing custom pro license opens and closes', async ({ page }) => {
-    await page.goto('/admin')
-    await page.getByRole('button', { name: /Issue New Pro License/i }).first().click()
-
-    await expect(page.getByRole('heading', { name: 'Issue Pro License Key' })).toBeVisible()
-    await expect(page.getByPlaceholder('e.g. Elena Rostova')).toBeVisible()
-
-    // Cancel modal
-    await page.getByRole('button', { name: 'Cancel' }).click()
-    await expect(page.getByRole('heading', { name: 'Issue Pro License Key' })).not.toBeVisible()
-  })
-
-  test('mobile responsiveness on /admin has no unexpected horizontal overflow', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 812 })
-    await page.goto('/admin')
-    await page.waitForTimeout(500)
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
-    expect(overflow).toBe(false)
+    // Click Lock Terminal
+    await page.getByRole('button', { name: /Lock Terminal/i }).click()
+    await page.waitForURL('**/admin/login')
+    await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
   })
 })

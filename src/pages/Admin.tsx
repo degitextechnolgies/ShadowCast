@@ -13,8 +13,9 @@ import {
   Search,
   Cpu,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { adminAuthService } from '../services/adminAuthService'
 
 // --- Lightweight, Type-Safe Pixel-Perfect SVG Icons ---
 
@@ -404,6 +405,14 @@ const INITIAL_LOGS: LogEntry[] = [
 
 export const Admin: React.FC = () => {
   const { user, showToast } = useAuth()
+  const navigate = useNavigate()
+  const adminSession = adminAuthService.getAdminSession()
+
+  const handleAdminSignOut = () => {
+    adminAuthService.logoutAdmin()
+    showToast('Admin session terminated. Terminal locked.', 'info')
+    navigate('/admin/login', { replace: true })
+  }
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'users' | 'nodes' | 'config' | 'logs'>('overview')
@@ -631,6 +640,14 @@ export const Admin: React.FC = () => {
               <span>Website</span>
             </Link>
 
+            <button
+              onClick={handleAdminSignOut}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-white transition-colors cursor-pointer"
+              title="Lock Admin Terminal"
+            >
+              <span>Lock Terminal</span>
+            </button>
+
             <div className="h-6 w-[1px] bg-slate-800 hidden sm:block" />
 
             <div className="flex items-center gap-2.5 pl-2">
@@ -640,8 +657,8 @@ export const Admin: React.FC = () => {
                 className="w-8 h-8 rounded-full ring-2 ring-[#FF1025]/50 object-cover"
               />
               <div className="hidden md:flex flex-col text-left">
-                <span className="text-xs font-bold text-white line-clamp-1">{user?.name || 'Root Administrator'}</span>
-                <span className="text-[10px] text-red-400 font-mono">SEC-LVL 5 (SUPERADMIN)</span>
+                <span className="text-xs font-bold text-white line-clamp-1">{adminSession?.name || user?.name || 'Root Administrator'}</span>
+                <span className="text-[10px] text-red-400 font-mono">{adminSession?.role || 'SUPERADMIN'} ({adminSession?.email || 'root'})</span>
               </div>
             </div>
           </div>
