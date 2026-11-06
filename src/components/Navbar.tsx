@@ -149,7 +149,7 @@ export default function Navbar() {
 
                     <div className="space-y-1">
                       <a
-                        href="#login"
+                        href="/dashboard"
                         onClick={() => setUserDropdown(false)}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-[#A1A1B5] hover:text-white hover:bg-white/5 transition-colors text-left"
                       >

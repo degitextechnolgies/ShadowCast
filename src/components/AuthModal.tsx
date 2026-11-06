@@ -11,8 +11,8 @@ export default function AuthModal() {
     signIn,
     signUp,
     signInWithProvider,
+    resetPassword,
     quickDemoLogin,
-    showToast,
   } = useAuth()
 
   const [internalMode, setInternalMode] = useState<'signin' | 'signup' | 'forgot' | null>(null)
@@ -55,10 +55,13 @@ export default function AuthModal() {
         return
       }
       setLoading(true)
-      await new Promise((r) => setTimeout(r, 600))
+      const res = await resetPassword(email)
       setLoading(false)
-      showToast(`Password reset link sent to ${email}`, 'info')
-      setInternalMode('signin')
+      if (res.success) {
+        setInternalMode('signin')
+      } else {
+        setError(res.error || 'Failed to dispatch password recovery link.')
+      }
       return
     }
 
@@ -80,9 +83,17 @@ export default function AuthModal() {
     setLoading(true)
     try {
       if (mode === 'signup') {
-        await signUp(name, email, password)
+        const res = await signUp(name, email, password)
+        if (!res.success) {
+          setError(res.error || 'Failed to create account.')
+          return
+        }
       } else {
-        await signIn(email, password)
+        const res = await signIn(email, password)
+        if (!res.success) {
+          setError(res.error || 'Invalid credentials or unverified account.')
+          return
+        }
       }
       setInternalMode(null)
     } catch {
@@ -157,7 +168,7 @@ export default function AuthModal() {
               <button
                 type="button"
                 onClick={() => {
-                  quickDemoLogin()
+                  quickDemoLogin?.()
                   setInternalMode(null)
                 }}
                 className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-950/40 via-red-900/30 to-red-950/40 border border-[#FF1025]/40 hover:border-[#FF1025] text-red-200 text-xs sm:text-sm font-medium transition-all group"

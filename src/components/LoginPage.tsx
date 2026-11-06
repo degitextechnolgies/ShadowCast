@@ -55,9 +55,15 @@ export default function LoginPage({ onBackToHome }: LoginPageProps) {
     setLoading(true)
     try {
       if (mode === 'signup') {
-        await signUp(name, email, password)
+        const res = await signUp(name, email, password)
+        if (!res.success) {
+          setError(res.error || 'Failed to create account.')
+        }
       } else {
-        await signIn(email, password)
+        const res = await signIn(email, password)
+        if (!res.success) {
+          setError(res.error || 'Failed to sign in.')
+        }
       }
     } catch {
       setError('An error occurred during authentication.')
