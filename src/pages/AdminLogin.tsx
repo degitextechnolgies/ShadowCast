@@ -27,7 +27,7 @@ export const AdminLogin: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const from = (location.state as any)?.from?.pathname || '/admin'
+  const from = (location.state as any)?.from?.pathname || '/kyareadmin'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -241,3 +241,4 @@ export const AdminLogin: React.FC = () => {
 }
 
 export default AdminLogin
+

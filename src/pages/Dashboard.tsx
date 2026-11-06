@@ -74,7 +74,7 @@ export const Dashboard: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <Link
-            to="/admin"
+            to="/kyareadmin"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-red-200 transition-colors"
           >
             <Shield size={14} />

@@ -119,16 +119,19 @@ export default function App() {
               }
             />
 
-            {/* Admin Command Center (Guarded by Admin Clearance) */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Admin Command Center (Secured Secret Path) */}
+            <Route path="/kyareadmin/login" element={<AdminLogin />} />
             <Route
-              path="/admin"
+              path="/kyareadmin"
               element={
                 <AdminRoute>
                   <Admin />
                 </AdminRoute>
               }
             />
+            {/* Alias /admin redirect to secret path */}
+            <Route path="/admin" element={<Navigate to="/kyareadmin" replace />} />
+            <Route path="/admin/login" element={<Navigate to="/kyareadmin/login" replace />} />
 
             {/* Catch-all fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

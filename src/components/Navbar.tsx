@@ -156,7 +156,7 @@ export default function Navbar() {
                         <Settings size={14} /> Account &amp; Devices
                       </a>
                       <a
-                        href="/admin"
+                        href="/kyareadmin"
                         onClick={() => setUserDropdown(false)}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-300 hover:text-white hover:bg-red-500/10 transition-colors text-left font-medium"
                       >
@@ -251,7 +251,7 @@ export default function Navbar() {
                       Member Hub
                     </a>
                     <a
-                      href="/admin"
+                      href="/kyareadmin"
                       onClick={() => setOpen(false)}
                       className="text-xs text-center py-2 px-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 hover:text-white font-medium"
                     >

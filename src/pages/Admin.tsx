@@ -411,7 +411,7 @@ export const Admin: React.FC = () => {
   const handleAdminSignOut = () => {
     adminAuthService.logoutAdmin()
     showToast('Admin session terminated. Terminal locked.', 'info')
-    navigate('/admin/login', { replace: true })
+    navigate('/kyareadmin/login', { replace: true })
   }
 
   // Navigation tab
