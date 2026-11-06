@@ -10,6 +10,7 @@ import {
   Download,
   Cpu,
   CheckCircle2,
+  Shield,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
@@ -72,6 +73,14 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link
+            to="/admin"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-red-200 transition-colors"
+          >
+            <Shield size={14} />
+            <span>Admin Portal</span>
+          </Link>
+
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition-colors"

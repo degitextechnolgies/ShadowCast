@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Download, LogIn, LogOut, ChevronDown, Monitor, Sparkles, Settings } from 'lucide-react'
+import { Menu, X, Download, LogIn, LogOut, ChevronDown, Monitor, Sparkles, Settings, Shield } from 'lucide-react'
 import { useAuth } from '../context/useAuth'
 
 const links = [
@@ -155,6 +155,13 @@ export default function Navbar() {
                       >
                         <Settings size={14} /> Account &amp; Devices
                       </a>
+                      <a
+                        href="/admin"
+                        onClick={() => setUserDropdown(false)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-300 hover:text-white hover:bg-red-500/10 transition-colors text-left font-medium"
+                      >
+                        <Shield size={14} className="text-[#FF1025]" /> Admin Console
+                      </a>
                       <button
                         onClick={() => {
                           signOut()
@@ -211,28 +218,47 @@ export default function Navbar() {
             <div className="flex flex-col p-5 gap-3">
               {/* Mobile Auth Status */}
               {user ? (
-                <div className="p-3 rounded-xl bg-[#121218] border border-[#2a2228] mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="w-9 h-9 rounded-full object-cover bg-red-950/30"
-                    />
-                    <div>
-                      <div className="text-sm font-semibold text-white">{user.name}</div>
-                      <div className="text-xs text-red-400 font-medium">{user.plan}</div>
+                <>
+                  <div className="p-3 rounded-xl bg-[#121218] border border-[#2a2228] mb-1 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-9 h-9 rounded-full object-cover bg-red-950/30"
+                      />
+                      <div>
+                        <div className="text-sm font-semibold text-white">{user.name}</div>
+                        <div className="text-xs text-red-400 font-medium">{user.plan}</div>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => {
+                        signOut()
+                        setOpen(false)
+                      }}
+                      className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg text-xs"
+                    >
+                      <LogOut size={14} />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      signOut()
-                      setOpen(false)
-                    }}
-                    className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg text-xs"
-                  >
-                    <LogOut size={14} />
-                  </button>
-                </div>
+
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    <a
+                      href="/dashboard"
+                      onClick={() => setOpen(false)}
+                      className="text-xs text-center py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white"
+                    >
+                      Member Hub
+                    </a>
+                    <a
+                      href="/admin"
+                      onClick={() => setOpen(false)}
+                      className="text-xs text-center py-2 px-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 hover:text-white font-medium"
+                    >
+                      Admin Console
+                    </a>
+                  </div>
+                </>
               ) : (
                 <button
                   onClick={() => {

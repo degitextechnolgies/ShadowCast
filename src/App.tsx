@@ -22,6 +22,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import AuthCallback from './pages/AuthCallback'
 import Dashboard from './pages/Dashboard'
+import Admin from './pages/Admin'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 
 /**
@@ -115,6 +116,9 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Admin Command Center */}
+            <Route path="/admin" element={<Admin />} />
 
             {/* Catch-all fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
