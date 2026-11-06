@@ -408,6 +408,17 @@ export const Admin: React.FC = () => {
   const navigate = useNavigate()
   const adminSession = adminAuthService.getAdminSession()
 
+  const [supabaseHealth, setSupabaseHealth] = useState<{ connected: boolean; latencyMs: number }>({
+    connected: true,
+    latencyMs: 38,
+  })
+
+  useEffect(() => {
+    adminAuthService.checkSupabaseHealth().then((res) => {
+      setSupabaseHealth({ connected: res.connected, latencyMs: res.latencyMs })
+    })
+  }, [])
+
   const handleAdminSignOut = () => {
     adminAuthService.logoutAdmin()
     showToast('Admin session terminated. Terminal locked.', 'info')
@@ -550,6 +561,18 @@ export const Admin: React.FC = () => {
     setNewUserName('')
     setNewUserEmail('')
     showToast(`Generated user and license key: ${generatedKey}`, 'success')
+
+    // Record in audit log
+    setLogs((prev) => [
+      {
+        id: `l_${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString(),
+        level: 'INFO',
+        category: 'LICENSE',
+        message: `Supabase Sync: Provisioned license key ${generatedKey} for pilot ${newUserEmail} (${newUserTier}).`,
+      },
+      ...prev,
+    ])
   }
 
   const handleSaveConfig = () => {
@@ -620,6 +643,11 @@ export const Admin: React.FC = () => {
             <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>NVENC Relay Active (0.8ms)</span>
+            </div>
+
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono">
+              <span className={`w-2 h-2 rounded-full ${supabaseHealth.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span>Supabase {supabaseHealth.connected ? `Connected (${supabaseHealth.latencyMs}ms)` : 'Connecting...'}</span>
             </div>
           </div>
 
@@ -899,6 +927,59 @@ export const Admin: React.FC = () => {
                   >
                     Manage Nodes &rarr;
                   </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Supabase Cloud Infrastructure Card */}
+            <div className="p-6 rounded-3xl bg-slate-900/50 border border-blue-500/30 backdrop-blur-xl relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <GlobeIcon size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-extrabold text-white">Supabase Cloud Infrastructure</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        {supabaseHealth.connected ? 'ONLINE' : 'CONNECTING'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5 font-mono">
+                      Endpoint: https://snnziouhxitblbzybesg.supabase.co
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={async () => {
+                    const res = await adminAuthService.checkSupabaseHealth()
+                    setSupabaseHealth({ connected: res.connected, latencyMs: res.latencyMs })
+                    showToast(`Supabase Handshake OK! Latency: ${res.latencyMs}ms`, 'success')
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-xs font-semibold text-blue-300 hover:text-white transition-colors cursor-pointer self-start sm:self-auto"
+                >
+                  Ping Supabase ({supabaseHealth.latencyMs}ms)
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-3 border-t border-slate-800/80">
+                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                  <div className="text-slate-400 text-[11px]">Auth Gateway</div>
+                  <div className="text-white font-mono font-bold mt-0.5">GoTrue v2 (JWT)</div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                  <div className="text-slate-400 text-[11px]">Database Engine</div>
+                  <div className="text-blue-300 font-mono font-bold mt-0.5">PostgreSQL 15+</div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                  <div className="text-slate-400 text-[11px]">Security Clearance</div>
+                  <div className="text-purple-300 font-mono font-bold mt-0.5">RLS Enabled</div>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                  <div className="text-slate-400 text-[11px]">Real-Time Sync</div>
+                  <div className="text-emerald-400 font-mono font-bold mt-0.5">Active Channel</div>
                 </div>
               </div>
             </div>

@@ -15,6 +15,8 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
+const CURRENT_YEAR = new Date().getFullYear()
+
 export const Dashboard: React.FC = () => {
   const { user, signOut, showToast } = useAuth()
   const navigate = useNavigate()
@@ -274,7 +276,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Footer */}
       <footer className="relative z-20 w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-slate-500 border-t border-slate-800/80">
-        <p>© {new Date().getFullYear()} ShadowCast by DEGiTEX. All rights reserved.</p>
+        <p>© {CURRENT_YEAR} ShadowCast by DEGiTEX. All rights reserved.</p>
       </footer>
     </div>
   )

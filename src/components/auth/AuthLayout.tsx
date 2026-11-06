@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, Monitor, Smartphone, Zap, Shield, Sparkles, Radio } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+const CURRENT_YEAR = new Date().getFullYear()
+
 interface AuthLayoutProps {
   children: React.ReactNode
   activePage?: 'login' | 'register' | 'forgot' | 'reset'
@@ -214,7 +216,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
       {/* Footer */}
       <footer className="relative z-20 w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-slate-500">
-        <p>© {new Date().getFullYear()} ShadowCast by DEGiTEX. All rights reserved.</p>
+        <p>© {CURRENT_YEAR} ShadowCast by DEGiTEX. All rights reserved.</p>
       </footer>
     </div>
   )

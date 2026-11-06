@@ -119,8 +119,12 @@ export const AdminLogin: React.FC = () => {
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-white">Command Center Login</h1>
             <p className="text-xs text-slate-400 mt-1 max-w-xs">
-              Authorize with verified administrator credentials to access stream relays and license nodes.
+              Authorize with verified administrator credentials or Supabase Auth to access stream relays and license nodes.
             </p>
+            <div className="mt-2.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] font-mono text-blue-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Supabase GoTrue Engine (snnziouhxitblbzybesg)</span>
+            </div>
           </div>
 
           {/* Error Notice */}
