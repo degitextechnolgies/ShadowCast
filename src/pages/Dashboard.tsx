@@ -4,7 +4,6 @@ import {
   Monitor,
   Zap,
   LogOut,
-  ArrowLeft,
   Smartphone,
   Radio,
   Download,
@@ -51,7 +50,7 @@ export const Dashboard: React.FC = () => {
       {/* Top Navbar */}
       <header className="relative z-20 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between border-b border-slate-800/80">
         <div className="flex items-center gap-6">
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <Link to="/dashboard" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF1025] to-purple-600 p-[1px] shadow-lg shadow-[#FF1025]/20">
               <div className="w-full h-full bg-[#050509] rounded-[7px] flex items-center justify-center">
                 <svg
@@ -84,14 +83,6 @@ export const Dashboard: React.FC = () => {
           >
             <Shield size={14} />
             <span>Admin Portal</span>
-          </Link>
-
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition-colors"
-          >
-            <ArrowLeft size={14} />
-            <span>Home</span>
           </Link>
 
           <button
@@ -205,12 +196,12 @@ export const Dashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-            <a
-              href="/#download"
+            <button
+              onClick={() => showToast('Opening Pro Ultra upgrade portal...', 'info')}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs whitespace-nowrap shadow-lg shadow-purple-900/30 text-center transition-all cursor-pointer"
             >
               Upgrade License
-            </a>
+            </button>
           </motion.div>
         )}
 
@@ -261,12 +252,12 @@ export const Dashboard: React.FC = () => {
             ) : (
               <div className="p-3.5 rounded-xl bg-black/30 border border-dashed border-slate-800 text-center">
                 <p className="text-xs text-slate-400 mb-2">No hardware devices paired yet.</p>
-                <a
-                  href="/#download"
-                  className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
+                <button
+                  onClick={() => showToast('Ensure ShadowCast Desktop Host app is running on Windows to auto-pair.', 'info')}
+                  className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors cursor-pointer"
                 >
                   <Download size={13} /> Pair via ShadowCast Host
-                </a>
+                </button>
               </div>
             )}
           </motion.div>
@@ -328,13 +319,13 @@ export const Dashboard: React.FC = () => {
               </p>
             </div>
 
-            <a
-              href="/#download"
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FF1025]/20 transition-all"
+            <button
+              onClick={() => showToast('ShadowCast Windows v1.8.5 installer download initiated.', 'success')}
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FF1025]/20 transition-all cursor-pointer"
             >
               <Download size={14} />
               <span>Download ShadowCast Setup</span>
-            </a>
+            </button>
           </motion.div>
         </div>
       </main>

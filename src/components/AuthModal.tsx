@@ -7,6 +7,7 @@ import { useAuth } from '../context/useAuth'
 export default function AuthModal() {
   const navigate = useNavigate()
   const {
+    user,
     isAuthModalOpen,
     closeAuthModal,
     authModalMode,
@@ -45,7 +46,13 @@ export default function AuthModal() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isAuthModalOpen, handleClose])
 
-  if (!isAuthModalOpen) return null
+  useEffect(() => {
+    if (user && isAuthModalOpen) {
+      closeAuthModal()
+    }
+  }, [user, isAuthModalOpen, closeAuthModal])
+
+  if (!isAuthModalOpen || user) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

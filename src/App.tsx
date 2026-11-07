@@ -1,22 +1,11 @@
-import { useEffect, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import Navbar from './components/Navbar'
-import Hero from './components/Hero'
-import ProductExperience from './components/ProductExperience'
-import HowItWorks from './components/HowItWorks'
-import Features from './components/Features'
-import Compatibility from './components/Compatibility'
-import Performance from './components/Performance'
-import ProductShowcase from './components/ProductShowcase'
-import Download from './components/Download'
-import FAQ from './components/FAQ'
-import Footer from './components/Footer'
-import AuthModal from './components/AuthModal'
 import Toast from './components/Toast'
 import ErrorBoundary from './components/ErrorBoundary'
 
-// Code-split Route Pages for ultra-fast landing page TTFB & minimal JS bundle
+// Route components are dynamically split to minimize bundle footprint and maximize TTFB
+const Landing = lazy(() => import('./pages/Landing'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
@@ -27,6 +16,7 @@ const Admin = lazy(() => import('./pages/Admin'))
 const AdminLogin = lazy(() => import('./pages/AdminLogin'))
 
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
 import { AdminRoute } from './components/auth/AdminRoute'
 
 const RouteLoader = () => (
@@ -36,72 +26,6 @@ const RouteLoader = () => (
   </div>
 )
 
-/**
- * Main Landing Page Component
- */
-function LandingPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  useEffect(() => {
-    // If user navigates to #login hash, redirect to /login route
-    if (window.location.hash === '#login') {
-      navigate('/login')
-      return
-    }
-
-    // Hardware-accelerated, zero-lag anchor scrolling for landing sections
-    const handleAnchorClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      const anchor = target.closest('a')
-      if (anchor && anchor.hash && anchor.origin === window.location.origin) {
-        if (anchor.hash === '#login') {
-          e.preventDefault()
-          navigate('/login')
-          return
-        }
-
-        const targetElement = document.querySelector(anchor.hash)
-        if (targetElement) {
-          e.preventDefault()
-          const navOffset = 80
-          const elementPosition = targetElement.getBoundingClientRect().top
-          const offsetPosition = elementPosition + window.pageYOffset - navOffset
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth',
-          })
-        }
-      }
-    }
-
-    document.addEventListener('click', handleAnchorClick)
-    return () => {
-      document.removeEventListener('click', handleAnchorClick)
-    }
-  }, [navigate, location])
-
-  return (
-    <>
-      <Navbar />
-      <main>
-        <Hero />
-        <ProductExperience />
-        <HowItWorks />
-        <Features />
-        <Compatibility />
-        <Performance />
-        <ProductShowcase />
-        <Download />
-        <FAQ />
-      </main>
-      <Footer />
-      <AuthModal />
-    </>
-  )
-}
-
 export default function App() {
   return (
     <ErrorBoundary>
@@ -110,17 +34,38 @@ export default function App() {
           <div className="min-h-screen bg-[#050509] text-white selection:bg-[#FF1025] selection:text-white">
             <Suspense fallback={<RouteLoader />}>
               <Routes>
-                {/* Public Landing Page */}
-                <Route path="/" element={<LandingPage />} />
+                {/* Public Landing Page — Once logged in, automatically redirects to /dashboard and never pops up again */}
+                <Route
+                  path="/"
+                  element={
+                    <PublicOnlyRoute>
+                      <Landing />
+                    </PublicOnlyRoute>
+                  }
+                />
 
-                {/* Premium Auth Experience */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+                {/* Authentication Routes — Bounces already authenticated users straight to /dashboard */}
+                <Route
+                  path="/login"
+                  element={
+                    <PublicOnlyRoute>
+                      <Login />
+                    </PublicOnlyRoute>
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    <PublicOnlyRoute>
+                      <Register />
+                    </PublicOnlyRoute>
+                  }
+                />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
 
-                {/* Protected Routes */}
+                {/* Protected User Dashboard */}
                 <Route
                   path="/dashboard"
                   element={
@@ -140,7 +85,7 @@ export default function App() {
                     </AdminRoute>
                   }
                 />
-                {/* Alias /admin redirect to secret path */}
+                {/* Alias /admin redirects to secret path */}
                 <Route path="/admin" element={<Navigate to="/kyareadmin" replace />} />
                 <Route path="/admin/login" element={<Navigate to="/kyareadmin/login" replace />} />
 
@@ -152,8 +97,8 @@ export default function App() {
             {/* Global Toast notifications */}
             <Toast />
           </div>
-      </AuthProvider>
-    </BrowserRouter>
-  </ErrorBoundary>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

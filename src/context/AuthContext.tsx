@@ -65,7 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(mapSupabaseUser(initialSession.user))
       } else {
         const savedUser =
+          localStorage.getItem('shadowcast_active_user') ||
           sessionStorage.getItem('shadowcast_active_user') ||
+          localStorage.getItem('shadowcast_demo_user') ||
           sessionStorage.getItem('shadowcast_demo_user')
         if (savedUser) {
           try {
@@ -137,7 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(res.data)
         setSupabaseUser(res.data.user)
         const mapped = mapSupabaseUser(res.data.user)
-        sessionStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
+        localStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
+        localStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
+    sessionStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
         setUser(mapped)
         closeAuthModal()
         showToast(`Welcome back, ${mapped.name}!`, 'success')
@@ -158,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         connectedDevices: 0,
         joinedAt: 'Recent',
       }
+      localStorage.setItem('shadowcast_active_user', JSON.stringify(mappedUser))
       sessionStorage.setItem('shadowcast_active_user', JSON.stringify(mappedUser))
       setUser(mappedUser)
       closeAuthModal()
@@ -202,6 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (res.data) {
       setSupabaseUser(res.data)
     }
+    localStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
     sessionStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
     setUser(mapped)
     closeAuthModal()
@@ -287,6 +293,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       connectedDevices: 2,
       joinedAt: 'November 2026',
     }
+    localStorage.setItem('shadowcast_demo_user', JSON.stringify(demoUser))
     sessionStorage.setItem('shadowcast_demo_user', JSON.stringify(demoUser))
     setUser(demoUser)
     closeAuthModal()
@@ -297,6 +304,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Sign Out
    */
   const signOut = async (): Promise<void> => {
+    localStorage.removeItem('shadowcast_demo_user')
+    localStorage.removeItem('shadowcast_active_user')
     sessionStorage.removeItem('shadowcast_demo_user')
     sessionStorage.removeItem('shadowcast_active_user')
     await authService.signOut()

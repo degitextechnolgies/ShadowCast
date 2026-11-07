@@ -87,5 +87,21 @@ test.describe('ShadowCast Authentication Suite', () => {
     await page.waitForURL('**/dashboard', { timeout: 10000 })
     await expect(page.getByRole('heading', { name: 'Marcus Vance' })).toBeVisible()
   })
+
+  test('once logged in, visiting root / redirects straight to /dashboard and landing page never pops up', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: /^Sign In$/i }).first().click()
+    await page.getByRole('button', { name: /1-Click Demo Login/i }).click()
+    await page.waitForURL('**/dashboard')
+    await expect(page.getByRole('heading', { name: 'Alex Vance' })).toBeVisible()
+
+    // Navigate to root /
+    await page.goto('/')
+
+    // Should automatically bounce to /dashboard
+    await page.waitForURL('**/dashboard')
+    await expect(page.getByRole('heading', { name: 'Alex Vance' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Sign In$/i })).toHaveCount(0)
+  })
 })
 
