@@ -339,3 +339,7 @@ SELECT
   p.created_at
 FROM public.profiles p
 LEFT JOIN public.licenses l ON p.id = l.user_id;
+
+-- Secure view with underlying Row-Level Security (RLS) enforcement
+ALTER VIEW public.v_pilot_overview SET (security_invoker = true);
+
