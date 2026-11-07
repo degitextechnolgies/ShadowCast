@@ -134,10 +134,17 @@ CREATE POLICY "Allow manage licenses"
 
 -- Stream Sessions: Public read for live monitoring
 DROP POLICY IF EXISTS "Allow read stream sessions" ON public.stream_sessions;
+DROP POLICY IF EXISTS "Allow manage stream sessions" ON public.stream_sessions;
 CREATE POLICY "Allow read stream sessions"
   ON public.stream_sessions FOR SELECT
   TO authenticated, anon
   USING (true);
+
+CREATE POLICY "Allow manage stream sessions"
+  ON public.stream_sessions FOR ALL
+  TO authenticated, anon
+  USING (true)
+  WITH CHECK (true);
 
 -- Audit logs: Public insert & read
 DROP POLICY IF EXISTS "Allow read audit logs" ON public.audit_logs;
