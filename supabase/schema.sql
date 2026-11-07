@@ -1,6 +1,7 @@
 -- ==============================================================================
--- SHADOWCAST SUPABASE PRODUCTION DATABASE SCHEMA (OPTIMIZED FOR FREE & PRO)
+-- SHADOWCAST SUPABASE PRODUCTION DATABASE SCHEMA (100% IDEMPOTENT & SAFE)
 -- Project: snnziouhxitblbzybesg.supabase.co
+-- Can be re-run safely anytime without "already exists" errors.
 -- ==============================================================================
 
 -- 1. PROFILES TABLE (Linked with auth.users)
@@ -19,6 +20,26 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Ensure all columns exist even if profiles table was previously created
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'max_resolution') THEN
+    ALTER TABLE public.profiles ADD COLUMN max_resolution TEXT NOT NULL DEFAULT '1080p';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'max_fps') THEN
+    ALTER TABLE public.profiles ADD COLUMN max_fps INT NOT NULL DEFAULT 60;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'max_devices') THEN
+    ALTER TABLE public.profiles ADD COLUMN max_devices INT NOT NULL DEFAULT 1;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'connected_devices') THEN
+    ALTER TABLE public.profiles ADD COLUMN connected_devices INT NOT NULL DEFAULT 0;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'role') THEN
+    ALTER TABLE public.profiles ADD COLUMN role TEXT NOT NULL DEFAULT 'pilot';
+  END IF;
+END $$;
 
 -- 2. LICENSES TABLE
 CREATE TABLE IF NOT EXISTS public.licenses (
@@ -71,7 +92,7 @@ CREATE INDEX IF NOT EXISTS idx_stream_sessions_status ON public.stream_sessions(
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(created_at DESC);
 
 -- ==============================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- ROW LEVEL SECURITY (RLS) POLICIES (WITH SAFE DROP IF EXISTS)
 -- ==============================================================================
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -80,42 +101,52 @@ ALTER TABLE public.stream_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: Users can read and update their own profile; public read for avatars
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
 CREATE POLICY "Users can read own profile"
   ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Public profile read" ON public.profiles;
 CREATE POLICY "Public profile read"
   ON public.profiles FOR SELECT
   TO authenticated, anon
   USING (true);
 
 -- Licenses: Read access for authenticated users; admins can insert/update
+DROP POLICY IF EXISTS "Users can read own licenses" ON public.licenses;
+DROP POLICY IF EXISTS "Allow read licenses" ON public.licenses;
 CREATE POLICY "Users can read own licenses"
   ON public.licenses FOR SELECT
   TO authenticated, anon
   USING (auth.uid() = user_id OR auth.uid() IS NULL);
 
+DROP POLICY IF EXISTS "Allow manage licenses" ON public.licenses;
+DROP POLICY IF EXISTS "Allow admin manage licenses" ON public.licenses;
 CREATE POLICY "Allow manage licenses"
   ON public.licenses FOR ALL
   TO authenticated, anon
   USING (true);
 
 -- Stream Sessions: Public read for live monitoring
+DROP POLICY IF EXISTS "Allow read stream sessions" ON public.stream_sessions;
 CREATE POLICY "Allow read stream sessions"
   ON public.stream_sessions FOR SELECT
   TO authenticated, anon
   USING (true);
 
 -- Audit logs: Public insert & read
+DROP POLICY IF EXISTS "Allow read audit logs" ON public.audit_logs;
 CREATE POLICY "Allow read audit logs"
   ON public.audit_logs FOR SELECT
   TO authenticated, anon
   USING (true);
 
+DROP POLICY IF EXISTS "Allow insert audit logs" ON public.audit_logs;
 CREATE POLICY "Allow insert audit logs"
   ON public.audit_logs FOR INSERT
   TO authenticated, anon
@@ -180,7 +211,17 @@ BEGIN
     chosen_devices,
     0,
     CASE WHEN new.email = 'admin@shadowcast.io' THEN 'admin' ELSE 'pilot' END
-  );
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    email = EXCLUDED.email,
+    avatar_url = EXCLUDED.avatar_url,
+    is_pro = EXCLUDED.is_pro,
+    plan = EXCLUDED.plan,
+    max_resolution = EXCLUDED.max_resolution,
+    max_fps = EXCLUDED.max_fps,
+    max_devices = EXCLUDED.max_devices,
+    updated_at = NOW();
 
   -- 2. Automatically Provision Corresponding License
   INSERT INTO public.licenses (
@@ -198,7 +239,8 @@ BEGIN
     'ACTIVE',
     chosen_devices,
     CASE WHEN is_user_pro THEN NOW() + INTERVAL '1 year' ELSE NULL END
-  );
+  )
+  ON CONFLICT (license_key) DO NOTHING;
 
   -- 3. Log Registration in Audit
   INSERT INTO public.audit_logs (category, level, message, user_id)
