@@ -105,7 +105,9 @@ export default function Navbar() {
                   <span className="text-xs font-medium text-white group-hover:text-red-300 transition-colors line-clamp-1 max-w-[100px]">
                     {user.name}
                   </span>
-                  <span className="text-[10px] text-[#FF1025] font-semibold uppercase tracking-wider">
+                  <span className={`text-[10px] font-semibold uppercase tracking-wider ${
+                    user.isPro ? 'text-[#FF1025]' : 'text-slate-400'
+                  }`}>
                     {user.isPro ? 'PRO' : 'FREE'}
                   </span>
                 </div>
@@ -130,8 +132,12 @@ export default function Navbar() {
                     <div className="px-3 py-2 border-b border-[#221c22] mb-2">
                       <div className="text-sm font-semibold text-white">{user.name}</div>
                       <div className="text-xs text-[#A1A1B5] truncate">{user.email}</div>
-                      <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FF1025]/20 text-red-300 text-[11px] font-medium">
-                        <Sparkles size={11} /> {user.plan}
+                      <div className={`mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border ${
+                        user.isPro
+                          ? 'bg-[#FF1025]/20 text-red-300 border-[#FF1025]/30'
+                          : 'bg-slate-800 text-slate-300 border-slate-700/60'
+                      }`}>
+                        <Sparkles size={11} className={user.isPro ? 'text-red-400' : 'text-slate-400'} /> {user.plan}
                       </div>
                     </div>
 
@@ -229,7 +235,7 @@ export default function Navbar() {
                       />
                       <div>
                         <div className="text-sm font-semibold text-white">{user.name}</div>
-                        <div className="text-xs text-red-400 font-medium">{user.plan}</div>
+                        <div className={`text-xs font-medium ${user.isPro ? 'text-red-400' : 'text-slate-400'}`}>{user.plan}</div>
                       </div>
                     </div>
                     <button

@@ -11,6 +11,7 @@ import {
   Cpu,
   CheckCircle2,
   Shield,
+  Sparkles,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
@@ -22,12 +23,14 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const [copiedKey, setCopiedKey] = useState(false)
 
-  const licenseToken = user ? `SHADOWCAST-PRO-${user.id.slice(0, 8).toUpperCase()}-PASS` : 'SHADOWCAST-PRO-KEY'
+  const licenseToken = user
+    ? `SHADOWCAST-${user.isPro ? 'PRO' : 'FREE'}-${user.id.slice(0, 8).toUpperCase()}-PASS`
+    : 'SHADOWCAST-KEY'
 
   const handleCopyKey = () => {
     navigator.clipboard.writeText(licenseToken)
     setCopiedKey(true)
-    showToast('Pro License Key copied to clipboard!', 'success')
+    showToast(`${user?.isPro ? 'Pro' : 'Free'} License Key copied to clipboard!`, 'success')
     setTimeout(() => setCopiedKey(false), 2000)
   }
 
@@ -126,8 +129,14 @@ export const Dashboard: React.FC = () => {
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
                     {user?.name || 'ShadowCast Pilot'}
                   </h1>
-                  <span className="px-2 py-0.5 rounded-md bg-[#FF1025]/20 text-red-300 border border-[#FF1025]/30 text-xs font-bold uppercase tracking-wider">
-                    {user?.plan || 'PRO ULTRA'}
+                  <span
+                    className={`px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider border ${
+                      user?.isPro
+                        ? 'bg-[#FF1025]/20 text-red-300 border-[#FF1025]/30'
+                        : 'bg-slate-800/80 text-slate-300 border-slate-700/80'
+                    }`}
+                  >
+                    {user?.plan || (user?.isPro ? 'Pro Ultra (4K)' : 'Free Plan')}
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">{user?.email}</p>
@@ -144,8 +153,8 @@ export const Dashboard: React.FC = () => {
             {/* Desktop App Pairing Token */}
             <div className="w-full sm:w-auto p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-inner">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>ShadowCast App License Key</span>
-                <span className="text-emerald-400 text-[10px]">Verified</span>
+                <span>ShadowCast App {user?.isPro ? 'Pro' : 'Free'} Key</span>
+                <span className="text-emerald-400 text-[10px]">Verified {user?.isPro ? 'Pro' : 'Free'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <code className="px-3 py-1.5 rounded-lg bg-black/60 font-mono text-xs text-purple-300 font-bold border border-purple-500/30">
@@ -167,11 +176,43 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
               <p className="text-[10px] text-slate-500 mt-1.5">
-                Paste inside Windows ShadowCast Settings &gt; License to remove watermarks.
+                {user?.isPro
+                  ? 'Active Pro Ultra entitlement. Unlocks watermark-free 4K 120Hz streams.'
+                  : 'Free community tier. Upgrade anytime to unlock 4K 120Hz and multi-device mirroring.'}
               </p>
             </div>
           </div>
         </motion.div>
+
+        {/* Pro Upgrade Banner for Free Users */}
+        {!user?.isPro && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-purple-950/60 via-slate-900/80 to-[#121218] border border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-300 ring-1 ring-purple-500/30">
+                <Sparkles size={22} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  Upgrade to ShadowCast Pro Ultra
+                  <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">4K 120FPS</span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Unlock 3840 × 2160 UHD streaming, uncompressed 320kbps Opus Studio audio, and unlimited concurrent paired devices.
+                </p>
+              </div>
+            </div>
+            <a
+              href="/#download"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs whitespace-nowrap shadow-lg shadow-purple-900/30 text-center transition-all cursor-pointer"
+            >
+              Upgrade License
+            </a>
+          </motion.div>
+        )}
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -251,12 +292,16 @@ export const Dashboard: React.FC = () => {
             </p>
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
-                <span className="text-slate-400">Resolution</span>
-                <span className="text-white font-mono font-semibold">3840 × 2160 (4K UHD)</span>
+                <span className="text-slate-400">Stream Resolution</span>
+                <span className="text-white font-mono font-semibold">
+                  {user?.isPro ? '3840 × 2160 (4K UHD)' : '1920 × 1080 (FHD Cap)'}
+                </span>
               </div>
               <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
-                <span className="text-slate-400">Audio Bitrate</span>
-                <span className="text-emerald-400 font-mono font-semibold">320 kbps Opus Studio</span>
+                <span className="text-slate-400">Audio Pipeline</span>
+                <span className="text-emerald-400 font-mono font-semibold">
+                  {user?.isPro ? '320 kbps Opus Studio' : '160 kbps Stereo'}
+                </span>
               </div>
             </div>
           </motion.div>
