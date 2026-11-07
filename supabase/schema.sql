@@ -350,3 +350,10 @@ LEFT JOIN public.licenses l ON p.id = l.user_id;
 -- Secure view with underlying Row-Level Security (RLS) enforcement
 ALTER VIEW public.v_pilot_overview SET (security_invoker = true);
 
+-- Grant API permissions to Supabase anon and authenticated roles
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated;
+
+
