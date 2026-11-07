@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT UNIQUE,
   avatar_url TEXT,
   is_pro BOOLEAN DEFAULT false,
-  plan TEXT DEFAULT 'Free Trial',
+  plan TEXT DEFAULT 'Free Plan',
   connected_devices INT DEFAULT 0,
   role TEXT DEFAULT 'pilot', -- 'pilot' or 'admin'
   created_at TIMESTAMPTZ DEFAULT NOW(),
