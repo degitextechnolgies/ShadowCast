@@ -247,13 +247,13 @@ interface LogEntry {
   message: string
 }
 
-// Initial Mock Seed Data
+// Baseline System Data
 const INITIAL_USERS: AdminUser[] = [
   {
     id: 'usr_9482',
     name: 'Abhishek Kumar',
     email: 'abhishek@shadowcast.io',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=abhishek@shadowcast.io',
     tier: 'ENTERPRISE',
     licenseKey: 'SHADOW-ENT-9482-TITAN-X',
     activeDevices: 4,
@@ -263,9 +263,9 @@ const INITIAL_USERS: AdminUser[] = [
   },
   {
     id: 'usr_8123',
-    name: 'Deekshith Pilot',
+    name: 'Deekshith (Root)',
     email: 'ppdeekshith@gmail.com',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ppdeekshith@gmail.com',
     tier: 'PRO ULTRA',
     licenseKey: 'SHADOWCAST-PRO-8123-PASS',
     activeDevices: 2,
@@ -273,61 +273,13 @@ const INITIAL_USERS: AdminUser[] = [
     lastSeen: '1 min ago',
     joinedDate: '2026-02-01',
   },
-  {
-    id: 'usr_7541',
-    name: 'Sarah Connor',
-    email: 's.connor@cyberdyne.net',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    tier: 'PRO ULTRA',
-    licenseKey: 'SHADOWCAST-PRO-7541-PASS',
-    activeDevices: 1,
-    status: 'ACTIVE',
-    lastSeen: '5 mins ago',
-    joinedDate: '2026-03-11',
-  },
-  {
-    id: 'usr_6290',
-    name: 'Marcus Vance',
-    email: 'marcus.v@streamstudio.tv',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-    tier: 'ENTERPRISE',
-    licenseKey: 'SHADOW-ENT-6290-BROADCAST',
-    activeDevices: 5,
-    status: 'ACTIVE',
-    lastSeen: '12 mins ago',
-    joinedDate: '2026-02-19',
-  },
-  {
-    id: 'usr_5189',
-    name: 'Elena Rostova',
-    email: 'elena@gamershaven.gg',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-    tier: 'CREATOR',
-    licenseKey: 'SHADOW-CREATOR-5189',
-    activeDevices: 2,
-    status: 'ACTIVE',
-    lastSeen: '45 mins ago',
-    joinedDate: '2026-04-02',
-  },
-  {
-    id: 'usr_4021',
-    name: 'Kenji Takahashi',
-    email: 'kenji.tokyo@esports.jp',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-    tier: 'FREE',
-    licenseKey: 'SHADOW-TRIAL-EXPIRED',
-    activeDevices: 0,
-    status: 'EXPIRED',
-    lastSeen: '3 days ago',
-    joinedDate: '2026-01-28',
-  },
 ]
 
 const INITIAL_SESSIONS: StreamSession[] = [
   {
     id: 'str_8819',
-    clientName: "Abhishek's Rig",
-    deviceModel: 'iPhone 16 Pro Max',
+    clientName: 'Primary Relay Stream',
+    deviceModel: 'AirPlay 2 Gateway',
     clientType: 'ios',
     protocol: 'AirPlay 2',
     resolution: '3840 × 2160 (4K)',
@@ -338,51 +290,6 @@ const INITIAL_SESSIONS: StreamSession[] = [
     status: 'active',
     uptime: '02:44:19',
     ip: '103.21.244.12',
-  },
-  {
-    id: 'str_8820',
-    clientName: 'Galaxy S25 Workstation',
-    deviceModel: 'Samsung Galaxy S25 Ultra',
-    clientType: 'android',
-    protocol: 'USB 3.2 Gen2',
-    resolution: '3120 × 1440 (QHD+)',
-    fps: 120,
-    bitrateMbps: 64.0,
-    latencyMs: 0.4,
-    relayNode: 'Direct USB Scrcpy',
-    status: 'active',
-    uptime: '05:12:08',
-    ip: '127.0.0.1 (Local ADB)',
-  },
-  {
-    id: 'str_8821',
-    clientName: 'iPad Pro Studio Stage',
-    deviceModel: 'iPad Pro 13" M4',
-    clientType: 'ios',
-    protocol: 'Wi-Fi 7 P2P',
-    resolution: '2752 × 2064',
-    fps: 120,
-    bitrateMbps: 38.5,
-    latencyMs: 1.1,
-    relayNode: 'US-East-1 (N. Virginia)',
-    status: 'active',
-    uptime: '00:54:33',
-    ip: '172.56.21.90',
-  },
-  {
-    id: 'str_8822',
-    clientName: 'Pixel Gaming Rig',
-    deviceModel: 'Google Pixel 9 Pro XL',
-    clientType: 'android',
-    protocol: 'WebRTC',
-    resolution: '2992 × 1344',
-    fps: 90,
-    bitrateMbps: 28.0,
-    latencyMs: 2.1,
-    relayNode: 'EU-Central-1 (Frankfurt)',
-    status: 'active',
-    uptime: '01:19:42',
-    ip: '82.165.197.1',
   },
 ]
 
@@ -395,12 +302,9 @@ const INITIAL_NODES: RelayNode[] = [
 ]
 
 const INITIAL_LOGS: LogEntry[] = [
-  { id: 'l_1', timestamp: '20:04:12', level: 'INFO', category: 'NVENC', message: 'Hardware Session Init: NVENC H.265 Main10 ZeroLatency profile active (0.8ms pipeline).' },
-  { id: 'l_2', timestamp: '20:03:55', level: 'INFO', category: 'AIRPLAY', message: 'AirPlay 2 Pair-Setup MFi handshake completed for iPhone 16 Pro Max.' },
-  { id: 'l_3', timestamp: '20:01:20', level: 'SECURITY', category: 'AUTH', message: 'Admin authenticated from IP 103.21.244.12 via Supabase encrypted session.' },
-  { id: 'l_4', timestamp: '19:58:44', level: 'INFO', category: 'LICENSE', message: 'License key SHADOWCAST-PRO-8123 verified successfully for 2 devices.' },
-  { id: 'l_5', timestamp: '19:55:02', level: 'WARN', category: 'RELAY', message: 'US-East-1 relay node reached 78% NVENC encoder threshold. Auto-balancing traffic.' },
-  { id: 'l_6', timestamp: '19:50:11', level: 'INFO', category: 'AIRPLAY', message: 'Audio stream switch: 320kbps Opus Studio negotiated with host D3D11 audio renderer.' },
+  { id: 'l_1', timestamp: '12:00:00', level: 'INFO', category: 'NVENC', message: 'Hardware Session Init: NVENC H.265 Main10 ZeroLatency profile active (0.8ms pipeline).' },
+  { id: 'l_2', timestamp: '12:00:01', level: 'INFO', category: 'RELAY', message: 'AP-South-1 (Mumbai) relay node online and ready for incoming streams.' },
+  { id: 'l_3', timestamp: '12:00:02', level: 'SECURITY', category: 'AUTH', message: 'Admin security layer active: Level-5 clearance gateway initialized.' },
 ]
 
 export const Admin: React.FC = () => {
@@ -459,34 +363,6 @@ export const Admin: React.FC = () => {
   const [newUserTier, setNewUserTier] = useState<'PRO ULTRA' | 'ENTERPRISE' | 'CREATOR' | 'FREE'>('PRO ULTRA')
 
   const [inspectSession, setInspectSession] = useState<StreamSession | null>(null)
-
-  // Simulation: Add periodic log entries if not paused
-  useEffect(() => {
-    if (isLoggingPaused) return
-    const interval = setInterval(() => {
-      const msgs = [
-        { level: 'INFO', category: 'RELAY', message: `Telemetry Heartbeat: ${Math.floor(Math.random() * 200 + 1300)} streams active across 5 global edge clusters.` },
-        { level: 'INFO', category: 'NVENC', message: `D3D11 frame buffer sync: 120.0 FPS locked. GPU decode buffer 0 dropped frames.` },
-        { level: 'INFO', category: 'AIRPLAY', message: `P2P Wi-Fi Direct channel 149 negotiated at 1,200 Mbps PHY rate.` },
-      ] as const
-      const pick = msgs[Math.floor(Math.random() * msgs.length)]
-      const now = new Date()
-      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
-
-      setLogs((prev) => [
-        {
-          id: `l_${Date.now()}`,
-          timestamp: timeStr,
-          level: pick.level,
-          category: pick.category,
-          message: pick.message,
-        },
-        ...prev.slice(0, 49),
-      ])
-    }, 8000)
-
-    return () => clearInterval(interval)
-  }, [isLoggingPaused])
 
   // Handlers
   const handleTerminateSession = (sessionId: string) => {
@@ -680,7 +556,7 @@ export const Admin: React.FC = () => {
 
             <div className="flex items-center gap-2.5 pl-2">
               <img
-                src={user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                src={user?.avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=admin'}
                 alt="Admin"
                 className="w-8 h-8 rounded-full ring-2 ring-[#FF1025]/50 object-cover"
               />
@@ -1645,7 +1521,7 @@ export const Admin: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Elena Rostova"
+                    placeholder="e.g. Alex Vance"
                     value={newUserName}
                     onChange={(e) => setNewUserName(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"

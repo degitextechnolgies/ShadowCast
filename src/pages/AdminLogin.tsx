@@ -20,9 +20,9 @@ export const AdminLogin: React.FC = () => {
   const location = useLocation()
   const { showToast } = useAuth()
 
-  const [email, setEmail] = useState('ppdeekshith@gmail.com')
-  const [passcode, setPasscode] = useState(MASTER_ADMIN_PASSCODE)
-  const [securityPin, setSecurityPin] = useState('889900')
+  const [email, setEmail] = useState('')
+  const [passcode, setPasscode] = useState('')
+  const [securityPin, setSecurityPin] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)

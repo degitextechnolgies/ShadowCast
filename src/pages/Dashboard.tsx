@@ -186,28 +186,48 @@ export const Dashboard: React.FC = () => {
               <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
                 <Monitor size={20} />
               </div>
-              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                2 Connected
+              <span
+                className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
+                  (user?.connectedDevices ?? 0) > 0
+                    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                    : 'text-slate-400 bg-slate-800/40 border-slate-700/50'
+                }`}
+              >
+                {(user?.connectedDevices ?? 0) > 0 ? `${user?.connectedDevices} Connected` : '0 Paired'}
               </span>
             </div>
             <h3 className="text-base font-bold text-white mb-1">Mirroring Clients</h3>
             <p className="text-xs text-slate-400 mb-4 leading-relaxed">
               Paired devices ready for wireless AirPlay &amp; USB Scrcpy mirroring.
             </p>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
-                <span className="flex items-center gap-2 text-slate-300">
-                  <Smartphone size={14} className="text-purple-400" /> iPhone 15 Pro
-                </span>
-                <span className="text-purple-300 font-mono">AirPlay 2</span>
+            {(user?.connectedDevices ?? 0) > 0 ? (
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
+                  <span className="flex items-center gap-2 text-slate-300">
+                    <Smartphone size={14} className="text-purple-400" /> Active Mobile Client
+                  </span>
+                  <span className="text-purple-300 font-mono">AirPlay 2</span>
+                </div>
+                {(user?.connectedDevices ?? 0) > 1 && (
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
+                    <span className="flex items-center gap-2 text-slate-300">
+                      <Smartphone size={14} className="text-blue-400" /> Secondary USB Client
+                    </span>
+                    <span className="text-blue-300 font-mono">USB 3.2 Gen 2</span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
-                <span className="flex items-center gap-2 text-slate-300">
-                  <Smartphone size={14} className="text-blue-400" /> Samsung Galaxy S24
-                </span>
-                <span className="text-blue-300 font-mono">USB 3.2 Gen 2</span>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-black/30 border border-dashed border-slate-800 text-center">
+                <p className="text-xs text-slate-400 mb-2">No hardware devices paired yet.</p>
+                <a
+                  href="/#download"
+                  className="inline-flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors"
+                >
+                  <Download size={13} /> Pair via ShadowCast Host
+                </a>
               </div>
-            </div>
+            )}
           </motion.div>
 
           {/* Card 2: Stream Engine */}

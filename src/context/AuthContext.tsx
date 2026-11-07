@@ -22,9 +22,9 @@ function mapSupabaseUser(sbUser: SupabaseUser): User {
     name: capitalizedName,
     email: sbUser.email || '',
     avatar,
-    isPro: true,
-    plan: meta.plan || 'Pro Ultra (4K)',
-    connectedDevices: 2,
+    isPro: Boolean(meta.is_pro ?? meta.isPro ?? (meta.plan && meta.plan !== 'Free Plan')),
+    plan: meta.plan || 'Free Plan',
+    connectedDevices: meta.connected_devices ?? meta.connectedDevices ?? 0,
     joinedAt,
   }
 }
@@ -153,9 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: capitalized,
         email: email.trim().toLowerCase(),
         avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
-        isPro: true,
-        plan: 'Pro Ultra (4K)',
-        connectedDevices: 2,
+        isPro: false,
+        plan: 'Free Plan',
+        connectedDevices: 0,
         joinedAt: 'Recent',
       }
       sessionStorage.setItem('shadowcast_active_user', JSON.stringify(mappedUser))
@@ -193,9 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: name.trim() || email.split('@')[0],
           email: email.trim().toLowerCase(),
           avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
-          isPro: true,
-          plan: 'Pro Ultra (4K)',
-          connectedDevices: 2,
+          isPro: false,
+          plan: 'Free Plan',
+          connectedDevices: 0,
           joinedAt: 'Recent',
         }
 
@@ -281,7 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: 'usr_sc_demo',
       name: 'Alex Vance',
       email: 'alex.vance@shadowcast.io',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=alex.vance@shadowcast.io',
       isPro: true,
       plan: 'Pro Ultra (4K)',
       connectedDevices: 2,
