@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- SHADOWCAST SUPABASE PRODUCTION DATABASE SCHEMA (100% IDEMPOTENT & SAFE)
--- Project: snnziouhxitblbzybesg.supabase.co
+-- Project: cuosddpjfpkwlsfazpen.supabase.co (Tokyo ap-northeast-1)
 -- Can be re-run safely anytime without "already exists" errors.
 -- ==============================================================================
 
