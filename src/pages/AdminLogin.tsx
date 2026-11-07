@@ -9,10 +9,9 @@ import {
   ArrowLeft,
   CheckCircle2,
   AlertCircle,
-  Zap,
 } from 'lucide-react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { adminAuthService, MASTER_ADMIN_PASSCODE } from '../services/adminAuthService'
+import { adminAuthService } from '../services/adminAuthService'
 import { useAuth } from '../hooks/useAuth'
 
 export const AdminLogin: React.FC = () => {
@@ -22,7 +21,6 @@ export const AdminLogin: React.FC = () => {
 
   const [email, setEmail] = useState('')
   const [passcode, setPasscode] = useState('')
-  const [securityPin, setSecurityPin] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -35,7 +33,7 @@ export const AdminLogin: React.FC = () => {
     setLoading(true)
 
     try {
-      const res = await adminAuthService.loginAdmin(email, passcode, securityPin)
+      const res = await adminAuthService.loginAdmin(email, passcode)
       if (!res.success) {
         setErrorMessage(res.error || 'Access denied.')
         showToast(res.error || 'Authentication failed', 'error')
@@ -47,22 +45,6 @@ export const AdminLogin: React.FC = () => {
       navigate(from, { replace: true })
     } catch {
       setErrorMessage('An unexpected cryptographic error occurred.')
-      setLoading(false)
-    }
-  }
-
-  const handleQuickDemoFill = async () => {
-    setEmail('ppdeekshith@gmail.com')
-    setPasscode(MASTER_ADMIN_PASSCODE)
-    setSecurityPin('889900')
-    setLoading(true)
-    setErrorMessage(null)
-
-    const res = await adminAuthService.loginAdmin('ppdeekshith@gmail.com', MASTER_ADMIN_PASSCODE, '889900')
-    if (res.success) {
-      showToast('Quick Root Access Granted!', 'success')
-      navigate(from, { replace: true })
-    } else {
       setLoading(false)
     }
   }
@@ -143,14 +125,14 @@ export const AdminLogin: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Administrator Identity
+                Administrator Identity / Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="admin@shadowcast.io"
+                  placeholder="admin"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1025] transition-colors"
@@ -160,14 +142,14 @@ export const AdminLogin: React.FC = () => {
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Master Security Passcode
+                Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="••••••••••••"
+                  placeholder="admin"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1025] transition-colors"
@@ -182,23 +164,6 @@ export const AdminLogin: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>2FA Security Token / PIN</span>
-                <span className="text-[10px] text-slate-500 lowercase">hardware key</span>
-              </label>
-              <div className="relative">
-                <Zap className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
-                <input
-                  type="text"
-                  placeholder="6-digit authenticator PIN"
-                  value={securityPin}
-                  onChange={(e) => setSecurityPin(e.target.value)}
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono tracking-wider focus:outline-none focus:border-[#FF1025] transition-colors"
-                />
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -207,32 +172,16 @@ export const AdminLogin: React.FC = () => {
               {loading ? (
                 <>
                   <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                  <span>Verifying Encrypted Session...</span>
+                  <span>Verifying Credentials...</span>
                 </>
               ) : (
                 <>
                   <CheckCircle2 size={15} />
-                  <span>Authenticate &amp; Enter Console</span>
+                  <span>Sign In</span>
                 </>
               )}
             </button>
           </form>
-
-          {/* Quick Demo Access Button */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80">
-            <button
-              type="button"
-              onClick={handleQuickDemoFill}
-              disabled={loading}
-              className="w-full py-2 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-[11px] text-purple-300 hover:text-white font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <Zap size={13} className="text-purple-400" />
-              <span>1-Click Root Demo Access</span>
-            </button>
-            <p className="text-[10px] text-slate-500 text-center mt-2 font-mono">
-              Default passcode: <code className="text-purple-400 font-bold">{MASTER_ADMIN_PASSCODE}</code>
-            </p>
-          </div>
         </motion.div>
       </main>
 

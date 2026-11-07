@@ -37,7 +37,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setInfoMessage(null)
 
     const trimmedEmail = email.trim()
-    if (!trimmedEmail || !/\S+@\S+\.\S+/.test(trimmedEmail)) {
+    const isAdmin =
+      trimmedEmail.toLowerCase() === 'admin' ||
+      (trimmedEmail.toLowerCase() === 'admin@shadowcast.io' && password === 'admin')
+
+    if (!isAdmin && (!trimmedEmail || !/\S+@\S+\.\S+/.test(trimmedEmail))) {
       setErrorMessage('Please enter a valid email address.')
       return
     }
@@ -52,7 +56,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       const res = await signIn(trimmedEmail, password)
       if (res.success) {
         onSuccess?.()
-        navigate(from, { replace: true })
+        if (isAdmin) {
+          navigate('/kyareadmin', { replace: true })
+        } else {
+          navigate(from, { replace: true })
+        }
       } else {
         setErrorMessage(res.error || 'Authentication failed. Please verify your credentials.')
       }
@@ -120,11 +128,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             </div>
             <input
               id="login-email"
-              type="email"
+              type="text"
+              autoCapitalize="none"
+              autoCorrect="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@domain.com"
-              autoComplete="email"
+              placeholder="you@domain.com or admin"
+              autoComplete="username"
               required
               disabled={loading}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/70 border border-slate-800/90 hover:border-slate-700 focus:border-purple-500/80 focus:ring-2 focus:ring-purple-500/20 text-sm text-white placeholder-slate-500 backdrop-blur-md transition-all duration-200 outline-none"

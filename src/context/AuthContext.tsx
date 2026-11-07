@@ -3,6 +3,7 @@ import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import { AuthContext, type User, type ToastInfo } from './authContextDef'
 import { supabase } from '../lib/supabase'
 import { authService } from '../services/authService'
+import { adminAuthService } from '../services/adminAuthService'
 
 function mapSupabaseUser(sbUser: SupabaseUser): User {
   const meta = sbUser.user_metadata || {}
@@ -66,9 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         const savedUser =
           localStorage.getItem('shadowcast_active_user') ||
-          sessionStorage.getItem('shadowcast_active_user') ||
-          localStorage.getItem('shadowcast_demo_user') ||
-          sessionStorage.getItem('shadowcast_demo_user')
+          sessionStorage.getItem('shadowcast_active_user')
         if (savedUser) {
           try {
             setUser(JSON.parse(savedUser))
@@ -133,6 +132,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: 'Password is required.' }
     }
 
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanPass = password.trim()
+
+    // Direct Admin Sign In Support ('admin' / 'admin' or authorized email)
+    if (
+      (cleanEmail === 'admin' || cleanEmail === 'admin@shadowcast.io' || cleanEmail === 'ppdeekshith@gmail.com') &&
+      (cleanPass === 'admin' || cleanPass === 'admin123' || cleanPass === 'ShadowCast#Admin2026!')
+    ) {
+      await adminAuthService.loginAdmin(cleanEmail, cleanPass)
+      const adminUser: User = {
+        id: 'usr_admin_root',
+        name: 'System Administrator',
+        email: 'admin@shadowcast.io',
+        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=admin',
+        isPro: true,
+        plan: 'Enterprise (Admin)',
+        connectedDevices: 1,
+        joinedAt: 'System Root',
+      }
+      localStorage.setItem('shadowcast_active_user', JSON.stringify(adminUser))
+      sessionStorage.setItem('shadowcast_active_user', JSON.stringify(adminUser))
+      setUser(adminUser)
+      closeAuthModal()
+      showToast('Admin clearance granted! Welcome, Administrator.', 'success')
+      return { success: true }
+    }
+
     const res = await authService.signInWithEmail(email, password)
     if (res.success) {
       if (res.data) {
@@ -140,8 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSupabaseUser(res.data.user)
         const mapped = mapSupabaseUser(res.data.user)
         localStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
-        localStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
-    sessionStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
+        sessionStorage.setItem('shadowcast_active_user', JSON.stringify(mapped))
         setUser(mapped)
         closeAuthModal()
         showToast(`Welcome back, ${mapped.name}!`, 'success')
@@ -280,33 +305,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   /**
-   * Fast Demo Login for instant evaluation/testing
-   */
-  const quickDemoLogin = useCallback(() => {
-    const demoUser: User = {
-      id: 'usr_sc_demo',
-      name: 'Alex Vance',
-      email: 'alex.vance@shadowcast.io',
-      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=alex.vance@shadowcast.io',
-      isPro: true,
-      plan: 'Pro Ultra (4K)',
-      connectedDevices: 2,
-      joinedAt: 'November 2026',
-    }
-    localStorage.setItem('shadowcast_demo_user', JSON.stringify(demoUser))
-    sessionStorage.setItem('shadowcast_demo_user', JSON.stringify(demoUser))
-    setUser(demoUser)
-    closeAuthModal()
-    showToast(`Logged in as Demo User (${demoUser.name})!`, 'success')
-  }, [closeAuthModal, showToast])
-
-  /**
    * Sign Out
    */
   const signOut = async (): Promise<void> => {
-    localStorage.removeItem('shadowcast_demo_user')
     localStorage.removeItem('shadowcast_active_user')
-    sessionStorage.removeItem('shadowcast_demo_user')
     sessionStorage.removeItem('shadowcast_active_user')
     await authService.signOut()
     setSession(null)
@@ -332,7 +334,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInWithProvider,
         resetPassword,
         updatePassword,
-        quickDemoLogin,
         signOut,
         showToast,
       }}

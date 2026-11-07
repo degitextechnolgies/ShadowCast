@@ -8,12 +8,14 @@ test.describe('ShadowCast Command Center Admin & Auth Suite', () => {
     await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
   })
 
-  test('admin login handles quick demo root access and grants entry to /kyareadmin', async ({ page }) => {
+  test('admin login handles credentials admin/admin and grants entry to /kyareadmin', async ({ page }) => {
     await page.goto('/kyareadmin/login')
     await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
 
-    // Click 1-Click Root Demo Access
-    await page.getByRole('button', { name: /1-Click Root Demo Access/i }).click()
+    // Sign in with admin / admin
+    await page.getByPlaceholder('admin').first().fill('admin')
+    await page.getByPlaceholder('admin').nth(1).fill('admin')
+    await page.getByRole('button', { name: /Sign In/i }).click()
 
     // Should navigate into /kyareadmin
     await page.waitForURL('**/kyareadmin')
@@ -22,9 +24,11 @@ test.describe('ShadowCast Command Center Admin & Auth Suite', () => {
   })
 
   test('admin page tab navigation switches sections properly when authenticated', async ({ page }) => {
-    // Authenticate via quick demo
+    // Authenticate via admin / admin
     await page.goto('/kyareadmin/login')
-    await page.getByRole('button', { name: /1-Click Root Demo Access/i }).click()
+    await page.getByPlaceholder('admin').first().fill('admin')
+    await page.getByPlaceholder('admin').nth(1).fill('admin')
+    await page.getByRole('button', { name: /Sign In/i }).click()
     await page.waitForURL('**/kyareadmin')
 
     // Switch to Live Streams & Clients
@@ -54,7 +58,9 @@ test.describe('ShadowCast Command Center Admin & Auth Suite', () => {
 
   test('lock terminal button terminates admin session and redirects to /kyareadmin/login', async ({ page }) => {
     await page.goto('/kyareadmin/login')
-    await page.getByRole('button', { name: /1-Click Root Demo Access/i }).click()
+    await page.getByPlaceholder('admin').first().fill('admin')
+    await page.getByPlaceholder('admin').nth(1).fill('admin')
+    await page.getByRole('button', { name: /Sign In/i }).click()
     await page.waitForURL('**/kyareadmin')
 
     // Click Lock Terminal

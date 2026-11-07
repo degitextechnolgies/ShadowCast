@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { X, Mail, Lock, User, Eye, EyeOff, Zap, ArrowRight, ShieldCheck } from 'lucide-react'
+import { X, Mail, Lock, User, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/useAuth'
 
 export default function AuthModal() {
@@ -15,7 +15,6 @@ export default function AuthModal() {
     signUp,
     signInWithProvider,
     resetPassword,
-    quickDemoLogin,
   } = useAuth()
 
   const [internalMode, setInternalMode] = useState<'signin' | 'signup' | 'forgot' | null>(null)
@@ -74,12 +73,15 @@ export default function AuthModal() {
       return
     }
 
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    const trimmedEmail = email.trim().toLowerCase()
+    const isAdmin = trimmedEmail === 'admin' || (trimmedEmail === 'admin@shadowcast.io' && password === 'admin')
+
+    if (!isAdmin && (!email || !/\S+@\S+\.\S+/.test(email))) {
       setError('Please provide a valid email address.')
       return
     }
 
-    if (!password || password.length < 6) {
+    if (!isAdmin && (!password || password.length < 6)) {
       setError('Password must be at least 6 characters long.')
       return
     }
@@ -105,7 +107,11 @@ export default function AuthModal() {
         }
       }
       setInternalMode(null)
-      navigate('/dashboard')
+      if (isAdmin) {
+        navigate('/kyareadmin')
+      } else {
+        navigate('/dashboard')
+      }
     } catch {
       setError('An unexpected error occurred. Please try again.')
     } finally {
@@ -171,29 +177,6 @@ export default function AuthModal() {
               {mode === 'forgot' && 'Enter your email to receive recovery instructions'}
             </p>
           </div>
-
-          {/* Quick Demo Test Button */}
-          {mode !== 'forgot' && (
-            <div className="mb-5">
-              <button
-                type="button"
-                onClick={() => {
-                  quickDemoLogin?.()
-                  setInternalMode(null)
-                  navigate('/dashboard')
-                }}
-                className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-950/40 via-red-900/30 to-red-950/40 border border-[#FF1025]/40 hover:border-[#FF1025] text-red-200 text-xs sm:text-sm font-medium transition-all group"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="p-1 rounded-md bg-[#FF1025]/30 text-red-300">
-                    <Zap size={14} className="fill-[#FF1025] text-[#FF1025]" />
-                  </span>
-                  <span><strong>1-Click Demo Login</strong> (Instant test)</span>
-                </div>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform text-[#FF1025]" />
-              </button>
-            </div>
-          )}
 
           {/* Tab Selector */}
           {mode !== 'forgot' && (

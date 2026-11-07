@@ -59,19 +59,15 @@ test.describe('ShadowCast Authentication Suite', () => {
     expect(overflow).toBe(false)
   })
 
-  test('homepage modal 1-click demo login grants user session and enables dashboard access', async ({ page }) => {
-    await page.goto('/')
-    await page.getByRole('button', { name: /^Sign In$/i }).first().click()
-    await expect(page.getByText('1-Click Demo Login')).toBeVisible()
+  test('login page with credentials admin/admin grants admin clearance and opens /kyareadmin', async ({ page }) => {
+    await page.goto('/login')
+    await page.getByLabel(/email address/i).fill('admin')
+    await page.getByLabel(/^password$/i).fill('admin')
+    await page.getByRole('button', { name: 'Sign In' }).click()
 
-    await page.getByRole('button', { name: /1-Click Demo Login/i }).click()
-
-    await expect(page.getByText(/Logged in as Demo User/i)).toBeVisible()
-    await expect(page.getByText('Alex Vance').first()).toBeVisible()
-
-    await page.goto('/dashboard')
-    await expect(page.getByRole('heading', { name: 'Alex Vance' })).toBeVisible()
-    await expect(page.getByText('Pro Ultra (4K)')).toBeVisible()
+    await page.waitForURL('**/kyareadmin')
+    await expect(page.getByText('COMMAND CENTER')).toBeVisible()
+    await expect(page.getByText('NVENC Relay Active (0.8ms)')).toBeVisible()
   })
 
   test('account creation logs user in directly to dashboard without requiring confirmation', async ({ page }) => {
@@ -89,18 +85,23 @@ test.describe('ShadowCast Authentication Suite', () => {
   })
 
   test('once logged in, visiting root / redirects straight to /dashboard and landing page never pops up', async ({ page }) => {
-    await page.goto('/')
-    await page.getByRole('button', { name: /^Sign In$/i }).first().click()
-    await page.getByRole('button', { name: /1-Click Demo Login/i }).click()
+    const randomEmail = `pilot-route-${Date.now()}@shadowcast.io`
+    await page.goto('/register')
+    await page.getByLabel(/full name/i).fill('Elena Vance')
+    await page.getByLabel(/email address/i).fill(randomEmail)
+    await page.getByLabel(/^password$/i).fill('StrongPass#2026!')
+    await page.getByLabel(/confirm password/i).fill('StrongPass#2026!')
+    await page.getByRole('checkbox').check()
+    await page.getByRole('button', { name: 'Create Account' }).click()
     await page.waitForURL('**/dashboard')
-    await expect(page.getByRole('heading', { name: 'Alex Vance' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Elena Vance' })).toBeVisible()
 
     // Navigate to root /
     await page.goto('/')
 
     // Should automatically bounce to /dashboard
     await page.waitForURL('**/dashboard')
-    await expect(page.getByRole('heading', { name: 'Alex Vance' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Elena Vance' })).toBeVisible()
     await expect(page.getByRole('button', { name: /^Sign In$/i })).toHaveCount(0)
   })
 })

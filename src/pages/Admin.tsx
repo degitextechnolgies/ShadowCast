@@ -1338,7 +1338,7 @@ export const Admin: React.FC = () => {
                 <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
                   <div>
                     <div className="text-xs font-bold text-white">Public Registration Gateway</div>
-                    <div className="text-[11px] text-slate-400">Allow new users to sign up via web and claim 14-day Pro Trial</div>
+                    <div className="text-[11px] text-slate-400">Allow new users to sign up via web and activate Community tier</div>
                   </div>
                   <button
                     onClick={() => setSystemConfig({ ...systemConfig, allowPublicRegistration: !systemConfig.allowPublicRegistration })}
@@ -1357,7 +1357,7 @@ export const Admin: React.FC = () => {
                 <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
                   <div>
                     <div className="text-xs font-bold text-white">Enforce Unlicensed Stream Watermark</div>
-                    <div className="text-[11px] text-slate-400">Overlays subtle ShadowCast logo on free/trial streams after 30 minutes</div>
+                    <div className="text-[11px] text-slate-400">Overlays subtle ShadowCast logo on free streams after 30 minutes</div>
                   </div>
                   <button
                     onClick={() => setSystemConfig({ ...systemConfig, enforceDRMWatermark: !systemConfig.enforceDRMWatermark })}
@@ -1550,7 +1550,7 @@ export const Admin: React.FC = () => {
                     <option value="PRO ULTRA">PRO ULTRA (All Platforms, 4K 120FPS, Multi-Display)</option>
                     <option value="ENTERPRISE">ENTERPRISE (Infinite Nodes, SDK Access, Dedicated Relay)</option>
                     <option value="CREATOR">CREATOR (1080p 60FPS, 2 Devices)</option>
-                    <option value="FREE">FREE TRIAL (Watermarked 30-day)</option>
+                    <option value="FREE">FREE (Standard)</option>
                   </select>
                 </div>
 

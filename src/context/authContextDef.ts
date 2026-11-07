@@ -34,7 +34,6 @@ export interface AuthContextType {
   signInWithProvider: (provider: 'google' | 'github' | 'discord') => Promise<boolean>
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>
-  quickDemoLogin?: () => void
   signOut: () => Promise<void>
   showToast: (message: string, type?: 'success' | 'info' | 'error') => void
 }
