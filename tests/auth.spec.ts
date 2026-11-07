@@ -104,5 +104,22 @@ test.describe('ShadowCast Authentication Suite', () => {
     await expect(page.getByRole('heading', { name: 'Elena Vance' })).toBeVisible()
     await expect(page.getByRole('button', { name: /^Sign In$/i })).toHaveCount(0)
   })
+
+  test('homepage AuthModal accepts admin/admin without browser validation block and navigates to /kyareadmin', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Sign In' }).first().click()
+    await expect(page.getByRole('heading', { name: 'Welcome to Shadow Cast' })).toBeVisible()
+
+    // Fill admin credentials without '@' symbol
+    await page.getByPlaceholder('name@example.com or admin').fill('admin')
+    await page.getByPlaceholder('••••••••').fill('admin')
+    await page.getByRole('button', { name: /Sign In to Dashboard/i }).click()
+
+    // Verified: routes to /kyareadmin
+    await page.waitForURL('**/kyareadmin')
+    await expect(page.getByText('COMMAND CENTER')).toBeVisible()
+    await expect(page.getByText('NVENC Relay Active (0.8ms)')).toBeVisible()
+  })
 })
+
 
