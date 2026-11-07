@@ -12,7 +12,7 @@ export default defineConfig({
         manualChunks: (id) => {
           if (id.includes('three') || id.includes('@react-three')) return 'three'
           if (id.includes('framer-motion')) return 'motion'
-          if (id.includes('@supabase') || id.includes('firebase')) return 'backend'
+          if (id.includes('@supabase')) return 'backend'
           if (id.includes('node_modules')) return 'vendor'
         },
       },
