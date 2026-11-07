@@ -74,7 +74,10 @@ export default function AuthModal() {
     }
 
     const trimmedEmail = email.trim().toLowerCase()
-    const isAdmin = trimmedEmail === 'admin' || (trimmedEmail === 'admin@shadowcast.io' && password === 'admin')
+    const trimmedPassword = password.trim()
+    const isAdmin =
+      (trimmedEmail === 'admin' || trimmedEmail === 'admin@shadowcast.io') &&
+      (trimmedPassword === 'admin' || trimmedPassword === 'admin123')
 
     if (!isAdmin && (!email || !/\S+@\S+\.\S+/.test(email))) {
       setError('Please provide a valid email address.')
@@ -100,7 +103,7 @@ export default function AuthModal() {
           return
         }
       } else {
-        const res = await signIn(email, password)
+        const res = await signIn(trimmedEmail, trimmedPassword)
         if (!res.success) {
           setError(res.error || 'Invalid credentials. Please verify your details.')
           return
@@ -225,7 +228,7 @@ export default function AuthModal() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
             {mode === 'signup' && (
               <div>
                 <label className="block text-xs font-medium text-[#A1A1B5] mb-1.5">Full Name / Gamer Tag</label>
@@ -248,11 +251,13 @@ export default function AuthModal() {
               <div className="relative">
                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#71718A]" />
                 <input
-                  type="email"
+                  type="text"
+                  autoCapitalize="none"
+                  autoCorrect="off"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder="name@example.com or admin"
                   className="w-full bg-[#160f16] border border-[#2e181e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-[#5E5E75] focus:outline-none focus:border-[#FF1025] transition-colors"
                 />
               </div>

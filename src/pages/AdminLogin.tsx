@@ -122,7 +122,7 @@ export const AdminLogin: React.FC = () => {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Administrator Identity / Email

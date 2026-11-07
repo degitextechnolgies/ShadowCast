@@ -116,7 +116,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       </AnimatePresence>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
         {/* Email */}
         <div className="space-y-1.5 text-left">
           <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider text-slate-300">
