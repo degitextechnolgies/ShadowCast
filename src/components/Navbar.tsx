@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Menu, X, Download, LogIn, LogOut, ChevronDown, Monitor, Sparkles, Settings, Shield } from 'lucide-react'
 import { useAuth } from '../context/useAuth'
 
@@ -148,20 +149,20 @@ export default function Navbar() {
                     </div>
 
                     <div className="space-y-1">
-                      <a
-                        href="/dashboard"
+                      <Link
+                        to="/dashboard"
                         onClick={() => setUserDropdown(false)}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-[#A1A1B5] hover:text-white hover:bg-white/5 transition-colors text-left"
                       >
                         <Settings size={14} /> Account &amp; Devices
-                      </a>
-                      <a
-                        href="/kyareadmin"
+                      </Link>
+                      <Link
+                        to="/kyareadmin"
                         onClick={() => setUserDropdown(false)}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-300 hover:text-white hover:bg-red-500/10 transition-colors text-left font-medium"
                       >
                         <Shield size={14} className="text-[#FF1025]" /> Admin Console
-                      </a>
+                      </Link>
                       <button
                         onClick={() => {
                           signOut()
@@ -243,20 +244,20 @@ export default function Navbar() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 mb-2">
-                    <a
-                      href="/dashboard"
+                    <Link
+                      to="/dashboard"
                       onClick={() => setOpen(false)}
                       className="text-xs text-center py-2 px-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white"
                     >
                       Member Hub
-                    </a>
-                    <a
-                      href="/kyareadmin"
+                    </Link>
+                    <Link
+                      to="/kyareadmin"
                       onClick={() => setOpen(false)}
                       className="text-xs text-center py-2 px-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 hover:text-white font-medium"
                     >
                       Admin Console
-                    </a>
+                    </Link>
                   </div>
                 </>
               ) : (

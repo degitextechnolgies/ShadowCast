@@ -58,5 +58,34 @@ test.describe('ShadowCast Authentication Suite', () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
     expect(overflow).toBe(false)
   })
+
+  test('homepage modal 1-click demo login grants user session and enables dashboard access', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: /^Sign In$/i }).first().click()
+    await expect(page.getByText('1-Click Demo Login')).toBeVisible()
+
+    await page.getByRole('button', { name: /1-Click Demo Login/i }).click()
+
+    await expect(page.getByText(/Logged in as Demo User/i)).toBeVisible()
+    await expect(page.getByText('Alex Vance').first()).toBeVisible()
+
+    await page.goto('/dashboard')
+    await expect(page.getByRole('heading', { name: 'Alex Vance' })).toBeVisible()
+    await expect(page.getByText('Pro Ultra (4K)')).toBeVisible()
+  })
+
+  test('account creation logs user in directly to dashboard without requiring confirmation', async ({ page }) => {
+    const randomEmail = `pilot-${Date.now()}@shadowcast.io`
+    await page.goto('/register')
+    await page.getByLabel(/full name/i).fill('Marcus Vance')
+    await page.getByLabel(/email address/i).fill(randomEmail)
+    await page.getByLabel(/^password$/i).fill('StrongPass#2026!')
+    await page.getByLabel(/confirm password/i).fill('StrongPass#2026!')
+    await page.getByRole('checkbox').check()
+    await page.getByRole('button', { name: 'Create Account' }).click()
+
+    await page.waitForURL('**/dashboard', { timeout: 10000 })
+    await expect(page.getByRole('heading', { name: 'Marcus Vance' })).toBeVisible()
+  })
 })
 

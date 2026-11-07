@@ -1,14 +1,17 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, Download } from 'lucide-react'
 import { lazy, Suspense } from 'react'
+import ErrorBoundary from './ErrorBoundary'
 const Hero3D = lazy(() => import('./Hero3D'))
 
 export default function Hero() {
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-24">
-      <Suspense fallback={null}>
-        <Hero3D />
-      </Suspense>
+      <ErrorBoundary fallback={null}>
+        <Suspense fallback={null}>
+          <Hero3D />
+        </Suspense>
+      </ErrorBoundary>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center w-full">
         <div className="max-w-[480px]">

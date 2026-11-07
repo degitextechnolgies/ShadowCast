@@ -20,7 +20,8 @@ const AUTHORIZED_ADMINS = [
   { email: 'abhishek@shadowcast.io', name: 'Abhishek Kumar', role: 'SUPERADMIN' as const },
 ]
 
-export const MASTER_ADMIN_PASSCODE = 'ShadowCast#Admin2026!'
+export const MASTER_ADMIN_PASSCODE =
+  import.meta.env.VITE_ADMIN_PASSCODE || 'ShadowCast#Admin2026!'
 
 export const adminAuthService = {
   /**

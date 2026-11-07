@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { X, Mail, Lock, User, Eye, EyeOff, Zap, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/useAuth'
 
 export default function AuthModal() {
+  const navigate = useNavigate()
   const {
     isAuthModalOpen,
     closeAuthModal,
@@ -91,11 +93,12 @@ export default function AuthModal() {
       } else {
         const res = await signIn(email, password)
         if (!res.success) {
-          setError(res.error || 'Invalid credentials or unverified account.')
+          setError(res.error || 'Invalid credentials. Please verify your details.')
           return
         }
       }
       setInternalMode(null)
+      navigate('/dashboard')
     } catch {
       setError('An unexpected error occurred. Please try again.')
     } finally {
@@ -170,6 +173,7 @@ export default function AuthModal() {
                 onClick={() => {
                   quickDemoLogin?.()
                   setInternalMode(null)
+                  navigate('/dashboard')
                 }}
                 className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-950/40 via-red-900/30 to-red-950/40 border border-[#FF1025]/40 hover:border-[#FF1025] text-red-200 text-xs sm:text-sm font-medium transition-all group"
               >

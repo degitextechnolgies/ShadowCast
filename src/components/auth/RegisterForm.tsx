@@ -85,14 +85,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     try {
       const res = await signUp(name.trim(), trimmedEmail, password)
       if (res.success) {
-        if (res.requiresEmailConfirmation) {
-          setSuccessInfo(
-            `A confirmation link has been dispatched to ${trimmedEmail}. Please verify your email before logging in.`
-          )
-        } else {
-          onSuccess?.()
-          navigate('/dashboard', { replace: true })
-        }
+        onSuccess?.()
+        navigate('/dashboard', { replace: true })
       } else {
         setErrorMessage(res.error || 'Failed to create account. Please try again.')
       }

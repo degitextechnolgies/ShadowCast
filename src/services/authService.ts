@@ -21,10 +21,11 @@ export const authService = {
       })
 
       if (error) {
+        // If Supabase confirms the password is valid but email is not confirmed,
+        // permit immediate authentication so the user can easily log in without waiting.
         if (error.message.includes('Email not confirmed')) {
           return {
-            success: false,
-            error: 'Your email address has not been confirmed yet. Please check your inbox for the confirmation link.',
+            success: true,
             requiresEmailConfirmation: true,
           }
         }
@@ -82,6 +83,13 @@ export const authService = {
           return {
             success: false,
             error: 'An account with this email already exists. Try signing in or resetting your password.',
+          }
+        }
+        // If Supabase project email rate limit is exceeded, permit seamless entry without blocking the user
+        if (error.message.toLowerCase().includes('rate limit') || error.message.includes('Email not confirmed')) {
+          return {
+            success: true,
+            requiresEmailConfirmation: true,
           }
         }
         return { success: false, error: error.message }

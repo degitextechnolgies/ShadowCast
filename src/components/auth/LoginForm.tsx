@@ -53,10 +53,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       if (res.success) {
         onSuccess?.()
         navigate(from, { replace: true })
-      } else if (res.requiresEmailConfirmation) {
-        setInfoMessage(
-          'Your email confirmation is pending. Please open the verification link sent to your inbox before signing in.'
-        )
       } else {
         setErrorMessage(res.error || 'Authentication failed. Please verify your credentials.')
       }

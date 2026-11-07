@@ -127,7 +127,7 @@ export const Dashboard: React.FC = () => {
                     {user?.name || 'ShadowCast Pilot'}
                   </h1>
                   <span className="px-2 py-0.5 rounded-md bg-[#FF1025]/20 text-red-300 border border-[#FF1025]/30 text-xs font-bold uppercase tracking-wider">
-                    PRO ULTRA
+                    {user?.plan || 'PRO ULTRA'}
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">{user?.email}</p>
@@ -264,7 +264,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <a
-              href="#download"
+              href="/#download"
               className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FF1025]/20 transition-all"
             >
               <Download size={14} />
