@@ -13,7 +13,6 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const AuthCallback = lazy(() => import('./pages/AuthCallback'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Admin = lazy(() => import('./pages/Admin'))
-const AdminLogin = lazy(() => import('./pages/AdminLogin'))
 
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { PublicOnlyRoute } from './components/auth/PublicOnlyRoute'
@@ -76,7 +75,7 @@ export default function App() {
                 />
 
                 {/* Admin Command Center (Secured Secret Path) */}
-                <Route path="/kyareadmin/login" element={<AdminLogin />} />
+                <Route path="/kyareadmin/login" element={<Navigate to="/login" replace />} />
                 <Route
                   path="/kyareadmin"
                   element={
@@ -85,9 +84,9 @@ export default function App() {
                     </AdminRoute>
                   }
                 />
-                {/* Alias /admin redirects to secret path */}
+                {/* Alias /admin redirects to secret path & unified login */}
                 <Route path="/admin" element={<Navigate to="/kyareadmin" replace />} />
-                <Route path="/admin/login" element={<Navigate to="/kyareadmin/login" replace />} />
+                <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
                 {/* Catch-all fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />

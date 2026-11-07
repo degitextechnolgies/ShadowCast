@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, ArrowRight, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react'
+import { Mail, ArrowRight, AlertCircle, Sparkles, CheckCircle2, Shield } from 'lucide-react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { PasswordInput } from './PasswordInput'
@@ -30,6 +30,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   // Retrieve destination from router state or default to /dashboard
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+  const isComingFromAdmin =
+    from.includes('kyareadmin') ||
+    from.includes('admin') ||
+    location.search.includes('admin')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,11 +42,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     const trimmedEmail = email.trim()
     const isAdmin =
-      trimmedEmail.toLowerCase() === 'admin' ||
-      (trimmedEmail.toLowerCase() === 'admin@shadowcast.io' && password === 'admin')
+      (trimmedEmail.toLowerCase() === 'admin' ||
+        trimmedEmail.toLowerCase() === 'admin@shadowcast.io' ||
+        trimmedEmail.toLowerCase() === 'ppdeekshith@gmail.com') &&
+      (password === 'admin' || password === 'admin123' || password === 'ShadowCast#Admin2026!')
 
     if (!isAdmin && (!trimmedEmail || !/\S+@\S+\.\S+/.test(trimmedEmail))) {
-      setErrorMessage('Please enter a valid email address.')
+      setErrorMessage('Please enter a valid email address or admin.')
       return
     }
 
@@ -56,7 +62,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       const res = await signIn(trimmedEmail, password)
       if (res.success) {
         onSuccess?.()
-        if (isAdmin) {
+        if (isAdmin || isComingFromAdmin) {
           navigate('/kyareadmin', { replace: true })
         } else {
           navigate(from, { replace: true })
@@ -74,6 +80,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   return (
     <div className="w-full">
+      {/* Admin Notice if redirected from Command Center */}
+      {isComingFromAdmin && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-5 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-xs flex items-center gap-2.5 text-left"
+        >
+          <Shield size={16} className="text-red-400 shrink-0" />
+          <div className="leading-relaxed">
+            <span className="font-semibold text-white">Command Center Clearance</span>: Enter administrator credentials to proceed.
+          </div>
+        </motion.div>
+      )}
+
       {/* Header */}
       <div className="mb-6 text-left">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold mb-3">
@@ -120,7 +140,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         {/* Email */}
         <div className="space-y-1.5 text-left">
           <label htmlFor="login-email" className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Email Address
+            Email Address or Admin ID
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-purple-400 transition-colors">

@@ -11,7 +11,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const isAuthenticated = adminAuthService.isAdminAuthenticated()
 
   if (!isAuthenticated) {
-    return <Navigate to="/kyareadmin/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   return <>{children}</>

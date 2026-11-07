@@ -1,21 +1,31 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('ShadowCast Command Center Admin & Auth Suite', () => {
-  test('unauthenticated visit to /kyareadmin redirects to /kyareadmin/login', async ({ page }) => {
+test.describe('ShadowCast Command Center Admin & Unified Auth Suite', () => {
+  test('unauthenticated visit to /kyareadmin redirects to unified /login with clearance notice', async ({ page }) => {
     await page.goto('/kyareadmin')
-    await page.waitForURL('**/kyareadmin/login**')
-    await expect(page.getByText('RESTRICTED AREA • SEC-LVL 5')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
+    await page.waitForURL('**/login')
+    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
+    await expect(page.getByText('Command Center Clearance')).toBeVisible()
   })
 
-  test('admin login handles credentials admin/admin and grants entry to /kyareadmin', async ({ page }) => {
+  test('legacy /kyareadmin/login and /admin/login redirect directly to unified /login', async ({ page }) => {
     await page.goto('/kyareadmin/login')
-    await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
+    await page.waitForURL('**/login')
+    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
+
+    await page.goto('/admin/login')
+    await page.waitForURL('**/login')
+    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
+  })
+
+  test('admin login handles credentials admin/admin on unified /login and grants entry to /kyareadmin', async ({ page }) => {
+    await page.goto('/login')
+    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
 
     // Sign in with admin / admin
-    await page.getByPlaceholder('admin').first().fill('admin')
-    await page.getByPlaceholder('admin').nth(1).fill('admin')
-    await page.getByRole('button', { name: /Sign In/i }).click()
+    await page.getByLabel(/email address or admin id/i).fill('admin')
+    await page.getByLabel(/^password$/i).fill('admin')
+    await page.getByRole('button', { name: 'Sign In' }).click()
 
     // Should navigate into /kyareadmin
     await page.waitForURL('**/kyareadmin')
@@ -24,11 +34,11 @@ test.describe('ShadowCast Command Center Admin & Auth Suite', () => {
   })
 
   test('admin page tab navigation switches sections properly when authenticated', async ({ page }) => {
-    // Authenticate via admin / admin
-    await page.goto('/kyareadmin/login')
-    await page.getByPlaceholder('admin').first().fill('admin')
-    await page.getByPlaceholder('admin').nth(1).fill('admin')
-    await page.getByRole('button', { name: /Sign In/i }).click()
+    // Authenticate via admin / admin on unified login
+    await page.goto('/login')
+    await page.getByLabel(/email address or admin id/i).fill('admin')
+    await page.getByLabel(/^password$/i).fill('admin')
+    await page.getByRole('button', { name: 'Sign In' }).click()
     await page.waitForURL('**/kyareadmin')
 
     // Switch to Live Streams & Clients
@@ -56,16 +66,16 @@ test.describe('ShadowCast Command Center Admin & Auth Suite', () => {
     await expect(page.getByRole('heading', { name: 'Security & Hardware Telemetry Logs' })).toBeVisible()
   })
 
-  test('lock terminal button terminates admin session and redirects to /kyareadmin/login', async ({ page }) => {
-    await page.goto('/kyareadmin/login')
-    await page.getByPlaceholder('admin').first().fill('admin')
-    await page.getByPlaceholder('admin').nth(1).fill('admin')
-    await page.getByRole('button', { name: /Sign In/i }).click()
+  test('lock terminal button terminates admin session and redirects to unified /login', async ({ page }) => {
+    await page.goto('/login')
+    await page.getByLabel(/email address or admin id/i).fill('admin')
+    await page.getByLabel(/^password$/i).fill('admin')
+    await page.getByRole('button', { name: 'Sign In' }).click()
     await page.waitForURL('**/kyareadmin')
 
     // Click Lock Terminal
     await page.getByRole('button', { name: /Lock Terminal/i }).click()
-    await page.waitForURL('**/kyareadmin/login')
-    await expect(page.getByRole('heading', { name: 'Command Center Login' })).toBeVisible()
+    await page.waitForURL('**/login')
+    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
   })
 })
