@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
@@ -8,16 +8,66 @@ export const AuthCallback: React.FC = () => {
   const navigate = useNavigate()
   const { showToast } = useAuth()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const handledRef = useRef(false)
 
   useEffect(() => {
     let mounted = true
 
     const processOAuthCallback = async () => {
-      try {
-        // Parse hash/query params from Supabase OAuth redirect
-        const { data, error } = await supabase.auth.getSession()
+      if (handledRef.current) return
 
+      try {
+        // 1. Inspect URL search and hash fragments for OAuth errors
+        const searchParams = new URLSearchParams(window.location.search)
+        const hashRaw = window.location.hash.startsWith('#')
+          ? window.location.hash.substring(1)
+          : window.location.hash
+        const hashParams = new URLSearchParams(hashRaw)
+
+        const errorCode = searchParams.get('error') || hashParams.get('error')
+        const errorDesc = searchParams.get('error_description') || hashParams.get('error_description')
+        const rawError = errorDesc || errorCode
+
+        if (rawError) {
+          handledRef.current = true
+          const friendly =
+            (errorCode && errorCode.toLowerCase().includes('denied')) ||
+            (errorDesc && (errorDesc.toLowerCase().includes('denied') || errorDesc.toLowerCase().includes('cancel')))
+              ? 'Google sign-in request was cancelled or access denied.'
+              : rawError.replace(/\+/g, ' ')
+          if (mounted) {
+            setErrorMsg(friendly)
+            showToast(friendly, 'error')
+          }
+          return
+        }
+
+        // 2. Handle PKCE code exchange if present in query parameters
+        const code = searchParams.get('code')
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) {
+            handledRef.current = true
+            if (mounted) {
+              setErrorMsg(error.message)
+              showToast(error.message, 'error')
+            }
+            return
+          }
+          if (data?.session) {
+            handledRef.current = true
+            if (mounted) {
+              showToast('Authenticated successfully with Google!', 'success')
+              navigate('/dashboard', { replace: true })
+            }
+            return
+          }
+        }
+
+        // 3. Inspect existing / implicit session
+        const { data, error } = await supabase.auth.getSession()
         if (error) {
+          handledRef.current = true
           if (mounted) {
             setErrorMsg(error.message)
             showToast(error.message, 'error')
@@ -25,7 +75,8 @@ export const AuthCallback: React.FC = () => {
           return
         }
 
-        if (data.session) {
+        if (data?.session) {
+          handledRef.current = true
           if (mounted) {
             showToast('Authenticated successfully with Google!', 'success')
             navigate('/dashboard', { replace: true })
@@ -33,9 +84,10 @@ export const AuthCallback: React.FC = () => {
           return
         }
 
-        // Also check if auth state changes to SIGNED_IN
+        // 4. Listen for SIGNED_IN event from Supabase auth listener
         const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-          if (event === 'SIGNED_IN' && session) {
+          if (!handledRef.current && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+            handledRef.current = true
             if (mounted) {
               showToast('Signed in successfully!', 'success')
               navigate('/dashboard', { replace: true })
@@ -43,12 +95,18 @@ export const AuthCallback: React.FC = () => {
           }
         })
 
-        // Fallback timeout
-        const timeout = setTimeout(() => {
-          if (mounted && !data.session) {
-            navigate('/dashboard', { replace: true })
+        // 5. Fallback safety timeout
+        const timeout = setTimeout(async () => {
+          if (!handledRef.current && mounted) {
+            const { data: fallbackData } = await supabase.auth.getSession()
+            if (fallbackData?.session) {
+              handledRef.current = true
+              navigate('/dashboard', { replace: true })
+            } else {
+              navigate('/login', { replace: true })
+            }
           }
-        }, 2000)
+        }, 2500)
 
         return () => {
           sub?.subscription?.unsubscribe()

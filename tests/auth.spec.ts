@@ -120,6 +120,53 @@ test.describe('ShadowCast Authentication Suite', () => {
     await expect(page.getByText('COMMAND CENTER')).toBeVisible()
     await expect(page.getByText('NVENC Relay Active (0.8ms)')).toBeVisible()
   })
+
+  test('Google OAuth initiation triggers Supabase OAuth redirect', async ({ page }) => {
+    await page.goto('/login')
+    const googleBtn = page.getByRole('button', { name: 'Continue with Google' })
+    await expect(googleBtn).toBeVisible()
+
+    // Intercept outbound navigation to verify correct OAuth URL construction
+    const [request] = await Promise.all([
+      page.waitForRequest((req) => req.url().includes('supabase.co/auth/v1/authorize?provider=google')),
+      googleBtn.click(),
+    ])
+
+    expect(request.url()).toContain('provider=google')
+    expect(request.url()).toContain('redirect_to=')
+  })
+
+  test('/auth/callback handles cancelled or denied OAuth request cleanly', async ({ page }) => {
+    await page.goto('/auth/callback?error=access_denied&error_description=The+user+denied+the+request')
+    await expect(page.getByText('Authentication Failed')).toBeVisible()
+    await expect(page.getByText(/cancelled or access denied/i).first()).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Return to Sign In' })).toBeVisible()
+
+    // Clicking return routes back to /login
+    await page.getByRole('button', { name: 'Return to Sign In' }).click()
+    await page.waitForURL('**/login')
+  })
+
+  test('session persistence and logout functions properly', async ({ page }) => {
+    const randomEmail = `persist-${Date.now()}@shadowcast.io`
+    await page.goto('/register')
+    await page.getByLabel(/full name/i).fill('Session Tester')
+    await page.getByLabel(/email address/i).fill(randomEmail)
+    await page.getByLabel(/^password$/i).fill('StrongPass#2026!')
+    await page.getByLabel(/confirm password/i).fill('StrongPass#2026!')
+    await page.getByRole('checkbox').check()
+    await page.getByRole('button', { name: 'Create Account' }).click()
+    await page.waitForURL('**/dashboard')
+
+    // Reload page to verify session persistence
+    await page.reload()
+    await expect(page.getByRole('heading', { name: 'Session Tester' })).toBeVisible()
+
+    // Sign out
+    await page.getByRole('button', { name: /Sign Out/i }).first().click()
+    await page.waitForURL('**/login')
+    await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
+  })
 })
 
 

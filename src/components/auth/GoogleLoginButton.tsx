@@ -22,16 +22,16 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
     try {
       const res = await signInWithGoogle()
       if (!res.success) {
+        setLoading(false)
         onError?.(res.error || 'Failed to initialize Google login.')
       } else {
         onSuccess?.()
+        // Maintain loading state while browser redirects to Google's consent screen
       }
     } catch (err: unknown) {
+      setLoading(false)
       const msg = err instanceof Error ? err.message : 'Google sign-in error.'
       onError?.(msg)
-    } finally {
-      // Note: In OAuth redirect, the browser will navigate away, but set loading false if still mounted
-      setLoading(false)
     }
   }
 
