@@ -34,6 +34,16 @@ export const Dashboard: React.FC = () => {
     setTimeout(() => setCopiedKey(false), 2000)
   }
 
+  const handleDownloadSetup = () => {
+    showToast('Downloading ShadowCast-Setup-v1.8.5.exe...', 'success')
+    const link = document.createElement('a')
+    link.href = '/downloads/ShadowCast-Setup-v1.8.5.exe'
+    link.setAttribute('download', 'ShadowCast-Setup-v1.8.5.exe')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   const handleSignOut = async () => {
     await signOut()
     navigate('/login', { replace: true })
@@ -316,18 +326,18 @@ export const Dashboard: React.FC = () => {
                   v1.8.5
                 </span>
               </div>
-              <h3 className="text-base font-bold text-white mb-1">Desktop App</h3>
+              <h3 className="text-base font-bold text-white mb-1">Desktop App Installer</h3>
               <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                Get the latest ShadowCast Windows client package with bundled AirPlay &amp; Scrcpy drivers.
+                Official ShadowCast Windows x64 client package (.exe) with bundled AirPlay &amp; Scrcpy low-latency drivers.
               </p>
             </div>
 
             <button
-              onClick={() => showToast('ShadowCast Windows v1.8.5 installer download initiated.', 'success')}
+              onClick={handleDownloadSetup}
               className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FF1025]/20 transition-all cursor-pointer"
             >
               <Download size={14} />
-              <span>Download ShadowCast Setup</span>
+              <span>Download ShadowCast Setup (.exe)</span>
             </button>
           </motion.div>
         </div>

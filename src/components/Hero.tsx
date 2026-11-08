@@ -1,10 +1,24 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, Download } from 'lucide-react'
 import { lazy, Suspense } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 import ErrorBoundary from './ErrorBoundary'
 const Hero3D = lazy(() => import('./Hero3D'))
 
 export default function Hero() {
+  const { user, openAuthModal, showToast } = useAuth()
+  const navigate = useNavigate()
+
+  const handleDownloadClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!user) {
+      openAuthModal('signin')
+      showToast('Please sign in or create an account to download ShadowCast.', 'info')
+    } else {
+      navigate('/dashboard')
+    }
+  }
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-24 pb-16">
       <ErrorBoundary fallback={null}>
@@ -58,13 +72,13 @@ export default function Hero() {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="flex flex-wrap items-center gap-4 mb-10"
           >
-            <a
-              href="#download"
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#FF1025] via-[#E6001F] to-[#B30018] text-white font-bold text-sm shadow-xl shadow-[#FF1025]/30 hover:shadow-[#FF1025]/60 hover:-translate-y-0.5 transition-all duration-200 group"
+            <button
+              onClick={handleDownloadClick}
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#FF1025] via-[#E6001F] to-[#B30018] text-white font-bold text-sm shadow-xl shadow-[#FF1025]/30 hover:shadow-[#FF1025]/60 hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
             >
               <Download size={18} className="group-hover:translate-y-0.5 transition-transform" />
-              <span>Download for Windows</span>
-            </a>
+              <span>{user ? 'Download Installer (Dashboard)' : 'Download for Windows'}</span>
+            </button>
             <a
               href="#features"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/80 hover:border-slate-500 text-slate-200 hover:text-white font-semibold text-sm backdrop-blur-md transition-all duration-200 group"

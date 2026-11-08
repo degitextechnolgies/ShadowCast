@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Menu, X, Download, LogIn, LogOut, ChevronDown, Monitor, Sparkles, Settings, Shield } from 'lucide-react'
 import { useAuth } from '../context/useAuth'
 import { isSuperAdminEmail } from '../services/adminAuthService'
@@ -19,7 +19,18 @@ export default function Navbar() {
   const [userDropdown, setUserDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const { user, openAuthModal, signOut } = useAuth()
+  const { user, openAuthModal, signOut, showToast } = useAuth()
+  const navigate = useNavigate()
+
+  const handleDownloadClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!user) {
+      openAuthModal('signin')
+      showToast('Please sign in or create an account to download ShadowCast.', 'info')
+    } else {
+      navigate('/dashboard')
+    }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -197,12 +208,12 @@ export default function Navbar() {
           )}
 
           {/* Download CTA */}
-          <a
-            href="#download"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#FF1025] to-[#D90020] text-white font-bold text-sm shadow-lg shadow-[#FF1025]/40 hover:shadow-[#FF1025]/60 hover:-translate-y-0.5 transition-all duration-200"
+          <button
+            onClick={handleDownloadClick}
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#FF1025] to-[#D90020] text-white font-bold text-sm shadow-lg shadow-[#FF1025]/40 hover:shadow-[#FF1025]/60 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
           >
             <Download size={14} /> Download
-          </a>
+          </button>
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -295,9 +306,18 @@ export default function Navbar() {
               ))}
 
               <a
-                href="#download"
-                onClick={() => setOpen(false)}
-                className="mt-2 text-center py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF1025] to-[#D90020] text-white text-sm font-bold shadow-md shadow-[#FF1025]/30"
+                href={user ? '/dashboard' : '#download'}
+                onClick={(e) => {
+                  setOpen(false)
+                  if (!user) {
+                    e.preventDefault()
+                    openAuthModal('signin')
+                    showToast('Please sign in or create an account to download ShadowCast.', 'info')
+                  } else {
+                    navigate('/dashboard')
+                  }
+                }}
+                className="mt-2 text-center py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF1025] to-[#D90020] text-white text-sm font-bold shadow-md shadow-[#FF1025]/30 block"
               >
                 Download Now
               </a>
