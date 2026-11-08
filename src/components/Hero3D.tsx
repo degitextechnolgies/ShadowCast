@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 import * as THREE from 'three'
 import samuraiImg from '../assets/samurai.svg'
@@ -52,7 +52,7 @@ if (typeof window !== 'undefined') {
   )
 }
 
-function Moon() {
+function Moon({ x, y }: { x: number; y: number }) {
   const ref = useRef<THREE.Mesh>(null)
   useFrame((state) => {
     if (!ref.current) return
@@ -61,7 +61,7 @@ function Moon() {
     m.opacity = 0.85 + Math.sin(state.clock.elapsedTime * 0.7) * 0.1
   })
   return (
-    <mesh ref={ref} position={[1.6, 2.2, -10]} scale={[5.2, 5.2, 5.2]}>
+    <mesh ref={ref} position={[x, y, -10]} scale={[5.2, 5.2, 5.2]}>
       <sphereGeometry args={[1, 32, 32]} />
       <meshStandardMaterial
         color="#ff1025"
@@ -73,7 +73,7 @@ function Moon() {
   )
 }
 
-function MoonGlow() {
+function MoonGlow({ x, y }: { x: number; y: number }) {
   const ref = useRef<THREE.Mesh>(null)
   useFrame((state) => {
     if (!ref.current) return
@@ -82,14 +82,14 @@ function MoonGlow() {
     m.opacity = 0.35 + Math.sin(state.clock.elapsedTime * 0.9) * 0.1
   })
   return (
-    <mesh ref={ref} position={[1.6, 2.2, -9.6]} scale={[6.2, 6.2, 6.2]}>
+    <mesh ref={ref} position={[x, y, -9.6]} scale={[6.2, 6.2, 6.2]}>
       <sphereGeometry args={[1, 24, 24]} />
       <meshBasicMaterial color="#ff1025" transparent opacity={0.35} depthWrite={false} />
     </mesh>
   )
 }
 
-function Samurai() {
+function Samurai({ x, y }: { x: number; y: number }) {
   const ref = useRef<THREE.Sprite>(null)
   const [ready, setReady] = useState(false)
 
@@ -102,22 +102,22 @@ function Samurai() {
   useFrame((state) => {
     if (!ref.current || !ready) return
     const time = state.clock.elapsedTime
-    ref.current.position.y = -1.0 + Math.sin(time * 1.2) * 0.06
-    ref.current.position.x = 1.1 + mouse.x * 0.18
+    ref.current.position.y = y + Math.sin(time * 1.2) * 0.06
+    ref.current.position.x = x + mouse.x * 0.22
     ref.current.rotation.y = mouse.x * 0.08
   })
 
   if (!ready) return null
   return (
-    <sprite ref={ref} position={[1.1, -1.0, -4]} scale={[4.6, 6.2, 1]}>
+    <sprite ref={ref} position={[x, y, -4]} scale={[4.8, 6.4, 1]}>
       <spriteMaterial map={samuraiTex} transparent opacity={1} />
     </sprite>
   )
 }
 
-function Temple() {
+function Temple({ x }: { x: number }) {
   return (
-    <group position={[2.4, -1.1, -9]} scale={[0.9, 0.9, 0.9]}>
+    <group position={[x, -1.1, -9]} scale={[0.9, 0.9, 0.9]}>
       {[-2.6, -1.3, 0, 1.3, 2.6].map((y, i) => (
         <mesh key={i} position={[0, y, 0]}>
           <boxGeometry args={[2.2, 0.35, 2.2]} />
@@ -142,11 +142,11 @@ function Temple() {
   )
 }
 
-function ToriiGate() {
+function ToriiGate({ x }: { x: number }) {
   return (
-    <group position={[2.6, -2.4, -7.2]} rotation={[0, 0.2, 0]} scale={[0.85, 0.85, 0.85]}>
-      {[-0.6, 0.6].map((x) => (
-        <mesh key={x} position={[x, 0, 0]}>
+    <group position={[x, -2.4, -7.2]} rotation={[0, 0.2, 0]} scale={[0.85, 0.85, 0.85]}>
+      {[-0.6, 0.6].map((xPos) => (
+        <mesh key={xPos} position={[xPos, 0, 0]}>
           <boxGeometry args={[0.5, 3.2, 0.5]} />
           <meshStandardMaterial color="#050507" metalness={0.5} roughness={0.5} />
         </mesh>
@@ -292,6 +292,39 @@ function Fog() {
   )
 }
 
+function Scene() {
+  const { viewport } = useThree()
+  // Desktop/landscape: place Samurai & Blood Moon firmly on the right side
+  const isWide = viewport.width > 7.5
+
+  const samuraiX = isWide ? Math.min(3.4, Math.max(2.4, viewport.width * 0.28)) : 0
+  const samuraiY = isWide ? -0.9 : -1.6
+
+  const moonX = isWide ? Math.min(4.8, Math.max(3.4, viewport.width * 0.38)) : 0
+  const moonY = isWide ? 1.6 : 2.4
+
+  const templeX = isWide ? samuraiX + 1.6 : 2.2
+  const toriiX = isWide ? samuraiX + 1.4 : 2.4
+
+  return (
+    <>
+      <ambientLight intensity={0.15} />
+      <directionalLight position={[isWide ? 6 : 3, 6, 4]} intensity={0.9} color="#ff1025" />
+      <pointLight position={[moonX, moonY, -10]} intensity={2.5} distance={45} decay={1.6} color="#ff1025" />
+      <pointLight position={[samuraiX - 2.5, 1, -5]} intensity={0.8} distance={30} color="#d90020" />
+      <MoonGlow x={moonX} y={moonY} />
+      <Moon x={moonX} y={moonY} />
+      <Mountains />
+      <Temple x={templeX} />
+      <ToriiGate x={toriiX} />
+      <Fog />
+      <MapleLeaves />
+      <Samurai x={samuraiX} y={samuraiY} />
+      <Stars radius={55} depth={55} count={500} factor={3} saturation={0} speed={0.4} />
+    </>
+  )
+}
+
 export default function Hero3D() {
   const [isInView, setIsInView] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -331,19 +364,7 @@ export default function Hero3D() {
       >
         <color attach="background" args={['#050507']} />
         <fog attach="fog" args={['#050507', 8, 26]} />
-        <ambientLight intensity={0.15} />
-        <directionalLight position={[3, 6, 4]} intensity={0.9} color="#ff1025" />
-        <pointLight position={[1.6, 2.2, -10]} intensity={2.5} distance={45} decay={1.6} color="#ff1025" />
-        <pointLight position={[-3, 1, -5]} intensity={0.8} distance={30} color="#d90020" />
-        <MoonGlow />
-        <Moon />
-        <Mountains />
-        <Temple />
-        <ToriiGate />
-        <Fog />
-        <MapleLeaves />
-        <Samurai />
-        <Stars radius={55} depth={55} count={500} factor={3} saturation={0} speed={0.4} />
+        <Scene />
       </Canvas>
     </div>
   )
