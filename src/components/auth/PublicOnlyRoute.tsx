@@ -25,12 +25,12 @@ export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) =>
   }
 
   // If admin session is active, route to Command Center
-  if (adminAuthService.isAdminAuthenticated() || user?.id === 'usr_admin_root') {
+  if (adminAuthService.isAdminAuthenticated()) {
     return <Navigate to="/kyareadmin" replace />
   }
 
-  // If already logged in, redirect straight to dashboard
-  if (session || user) {
+  // If already logged in as regular user, redirect straight to dashboard
+  if (session || (user && user.id !== 'usr_admin_root')) {
     return <Navigate to="/dashboard" replace />
   }
 

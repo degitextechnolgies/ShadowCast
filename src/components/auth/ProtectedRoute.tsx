@@ -2,6 +2,7 @@ import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../../hooks/useAuth'
+import { adminAuthService } from '../../services/adminAuthService'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -53,8 +54,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     )
   }
 
+  // If active admin session, route to Command Center
+  if (adminAuthService.isAdminAuthenticated()) {
+    return <Navigate to="/kyareadmin" replace />
+  }
+
   // Not authenticated
-  if (!session && !user) {
+  if (!session && (!user || user.id === 'usr_admin_root')) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 

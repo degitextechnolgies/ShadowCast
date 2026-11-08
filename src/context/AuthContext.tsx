@@ -308,6 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Sign Out
    */
   const signOut = async (): Promise<void> => {
+    await adminAuthService.logoutAdmin()
     localStorage.removeItem('shadowcast_active_user')
     sessionStorage.removeItem('shadowcast_active_user')
     await authService.signOut()

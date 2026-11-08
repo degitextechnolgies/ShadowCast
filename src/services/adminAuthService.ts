@@ -28,7 +28,7 @@ export const adminAuthService = {
    * Check if current browser session holds a valid, unexpired admin token
    */
   isAdminAuthenticated(): boolean {
-    const raw = sessionStorage.getItem(ADMIN_STORAGE_KEY)
+    const raw = sessionStorage.getItem(ADMIN_STORAGE_KEY) || localStorage.getItem(ADMIN_STORAGE_KEY)
     if (!raw) return false
 
     try {
@@ -50,7 +50,7 @@ export const adminAuthService = {
   getAdminSession(): AdminSession | null {
     if (!this.isAdminAuthenticated()) return null
     try {
-      const raw = sessionStorage.getItem(ADMIN_STORAGE_KEY)
+      const raw = sessionStorage.getItem(ADMIN_STORAGE_KEY) || localStorage.getItem(ADMIN_STORAGE_KEY)
       return raw ? JSON.parse(raw) : null
     } catch {
       return null
@@ -112,6 +112,7 @@ export const adminAuthService = {
         source: 'master_passcode',
       }
       sessionStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(session))
+      localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(session))
       return { success: true, session }
     }
 
@@ -201,5 +202,8 @@ export const adminAuthService = {
       // ignore
     }
     sessionStorage.removeItem(ADMIN_STORAGE_KEY)
+    localStorage.removeItem(ADMIN_STORAGE_KEY)
+    localStorage.removeItem('shadowcast_active_user')
+    sessionStorage.removeItem('shadowcast_active_user')
   },
 }
