@@ -130,7 +130,7 @@ export const Dashboard: React.FC = () => {
                         : 'bg-slate-800/80 text-slate-300 border-slate-700/80'
                     }`}
                   >
-                    {user?.plan || (user?.isPro ? 'Pro Ultra (4K)' : 'Free Plan')}
+                    {user?.plan || (user?.isPro ? 'Creator Pro' : 'Creator')}
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">{user?.email}</p>
@@ -147,8 +147,8 @@ export const Dashboard: React.FC = () => {
             {/* Desktop App Pairing Token */}
             <div className="w-full sm:w-auto p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-inner">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>ShadowCast App {user?.isPro ? 'Pro' : 'Free'} Key</span>
-                <span className="text-emerald-400 text-[10px]">Verified {user?.isPro ? 'Pro' : 'Free'}</span>
+                <span>ShadowCast App {user?.isPro ? 'Creator Pro' : 'Creator'} Key</span>
+                <span className="text-emerald-400 text-[10px]">Verified {user?.isPro ? 'Creator Pro' : 'Creator'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <code className="px-3 py-1.5 rounded-lg bg-black/60 font-mono text-xs text-purple-300 font-bold border border-purple-500/30">
@@ -171,14 +171,14 @@ export const Dashboard: React.FC = () => {
               </div>
               <p className="text-[10px] text-slate-500 mt-1.5">
                 {user?.isPro
-                  ? 'Active Pro Ultra entitlement. Unlocks watermark-free 4K 120Hz streams.'
-                  : 'Free community tier. Upgrade anytime to unlock 4K 120Hz and multi-device mirroring.'}
+                  ? 'Active Creator Pro entitlement. Unlocks watermark-free 4K 120Hz streams & 5 device connections.'
+                  : 'Creator tier. Upgrade to Creator Pro anytime to unlock 4K 120Hz and 5 concurrent devices.'}
               </p>
             </div>
           </div>
         </motion.div>
 
-        {/* Pro Upgrade Banner for Free Users */}
+        {/* Pro Upgrade Banner for Creator Users */}
         {!user?.isPro && (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -191,19 +191,19 @@ export const Dashboard: React.FC = () => {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  Upgrade to ShadowCast Pro Ultra
+                  Upgrade to ShadowCast Creator Pro
                   <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">4K 120FPS</span>
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Unlock 3840 × 2160 UHD streaming, uncompressed 320kbps Opus Studio audio, and unlimited concurrent paired devices.
+                  Unlock 3840 × 2160 UHD streaming, uncompressed 320kbps Opus Studio audio, and up to 5 concurrent paired devices.
                 </p>
               </div>
             </div>
             <button
-              onClick={() => showToast('Opening Pro Ultra upgrade portal...', 'info')}
+              onClick={() => showToast('Opening Creator Pro upgrade portal...', 'info')}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs whitespace-nowrap shadow-lg shadow-purple-900/30 text-center transition-all cursor-pointer"
             >
-              Upgrade License
+              Upgrade to Creator Pro
             </button>
           </motion.div>
         )}

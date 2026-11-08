@@ -72,7 +72,7 @@ export const authService = {
           data: {
             full_name: trimmedName,
             display_name: trimmedName,
-            plan: 'Free Plan',
+            plan: 'Creator',
             is_pro: false,
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,

@@ -11,10 +11,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT UNIQUE,
   avatar_url TEXT,
   is_pro BOOLEAN NOT NULL DEFAULT false,
-  plan TEXT NOT NULL DEFAULT 'Free Plan', -- 'Free Plan' or 'Pro Ultra (4K)'
-  max_resolution TEXT NOT NULL DEFAULT '1080p', -- '1080p' for Free, '4K UHD' for Pro
-  max_fps INT NOT NULL DEFAULT 60, -- 60 for Free, 120 for Pro
-  max_devices INT NOT NULL DEFAULT 1, -- 1 for Free, 5 for Pro
+  plan TEXT NOT NULL DEFAULT 'Creator', -- 'Creator' or 'Creator Pro'
+  max_resolution TEXT NOT NULL DEFAULT '1080p', -- '1080p' for Creator, '4K UHD' for Creator Pro
+  max_fps INT NOT NULL DEFAULT 60, -- 60 for Creator, 120 for Creator Pro
+  max_devices INT NOT NULL DEFAULT 1, -- 1 for Creator, 5 for Creator Pro
   connected_devices INT NOT NULL DEFAULT 0,
   role TEXT NOT NULL DEFAULT 'pilot', -- 'pilot' or 'admin'
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -173,23 +173,25 @@ DECLARE
   chosen_devices INT;
   new_license_key TEXT;
 BEGIN
-  -- Determine whether account is Free or Pro based on metadata or email
+  -- Determine whether account is Creator or Creator Pro based on metadata or email
   IF (new.raw_user_meta_data->>'is_pro')::BOOLEAN = true OR 
+     new.raw_user_meta_data->>'plan' = 'Creator Pro' OR
      new.raw_user_meta_data->>'plan' = 'Pro Ultra (4K)' OR
+     new.email = 'degitextechnolgies@gmail.com' OR
      new.email = 'admin@shadowcast.io' THEN
     is_user_pro := true;
-    chosen_plan := 'Pro Ultra (4K)';
+    chosen_plan := 'Creator Pro';
     chosen_max_fps := 120;
     chosen_max_res := '4K UHD';
     chosen_devices := 5;
     new_license_key := 'SHADOWCAST-PRO-' || UPPER(SUBSTRING(REPLACE(gen_random_uuid()::TEXT, '-', ''), 1, 12));
   ELSE
     is_user_pro := false;
-    chosen_plan := 'Free Plan';
+    chosen_plan := 'Creator';
     chosen_max_fps := 60;
     chosen_max_res := '1080p';
     chosen_devices := 1;
-    new_license_key := 'SHADOWCAST-FREE-' || UPPER(SUBSTRING(REPLACE(gen_random_uuid()::TEXT, '-', ''), 1, 10));
+    new_license_key := 'SHADOWCAST-CREATOR-' || UPPER(SUBSTRING(REPLACE(gen_random_uuid()::TEXT, '-', ''), 1, 10));
   END IF;
 
   -- 1. Create Profile
@@ -217,7 +219,7 @@ BEGIN
     chosen_max_fps,
     chosen_devices,
     0,
-    CASE WHEN new.email = 'admin@shadowcast.io' THEN 'admin' ELSE 'pilot' END
+    CASE WHEN new.email IN ('degitextechnolgies@gmail.com', 'admin@shadowcast.io') THEN 'admin' ELSE 'pilot' END
   )
   ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
@@ -242,7 +244,7 @@ BEGIN
   VALUES (
     new.id,
     new_license_key,
-    CASE WHEN is_user_pro THEN 'PRO ULTRA' ELSE 'FREE' END,
+    CASE WHEN is_user_pro THEN 'CREATOR PRO' ELSE 'CREATOR' END,
     'ACTIVE',
     chosen_devices,
     CASE WHEN is_user_pro THEN NOW() + INTERVAL '1 year' ELSE NULL END
@@ -271,7 +273,7 @@ CREATE TRIGGER on_auth_user_created
 -- CONVENIENCE STORED PROCEDURES (UPGRADE & DOWNGRADE)
 -- ==============================================================================
 
--- Upgrade User to Pro Ultra (4K)
+-- Upgrade User to Creator Pro (4K 120FPS)
 CREATE OR REPLACE FUNCTION public.upgrade_user_to_pro(target_user_id UUID)
 RETURNS VOID AS $$
 DECLARE
@@ -281,7 +283,7 @@ BEGIN
   UPDATE public.profiles
   SET 
     is_pro = true,
-    plan = 'Pro Ultra (4K)',
+    plan = 'Creator Pro',
     max_resolution = '4K UHD',
     max_fps = 120,
     max_devices = 5,
@@ -290,23 +292,23 @@ BEGIN
 
   -- Update or Insert License
   INSERT INTO public.licenses (user_id, license_key, tier, status, max_devices, expires_at)
-  VALUES (target_user_id, pro_key, 'PRO ULTRA', 'ACTIVE', 5, NOW() + INTERVAL '1 year')
+  VALUES (target_user_id, pro_key, 'CREATOR PRO', 'ACTIVE', 5, NOW() + INTERVAL '1 year')
   ON CONFLICT (license_key) DO NOTHING;
 
   -- Log Upgrade
   INSERT INTO public.audit_logs (category, level, message, user_id)
-  VALUES ('LICENSE', 'INFO', 'Upgraded to Pro Ultra (4K) license ' || pro_key, target_user_id);
+  VALUES ('LICENSE', 'INFO', 'Upgraded to Creator Pro license ' || pro_key, target_user_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Downgrade User to Free Plan
+-- Downgrade User to Creator
 CREATE OR REPLACE FUNCTION public.downgrade_user_to_free(target_user_id UUID)
 RETURNS VOID AS $$
 BEGIN
   UPDATE public.profiles
   SET 
     is_pro = false,
-    plan = 'Free Plan',
+    plan = 'Creator',
     max_resolution = '1080p',
     max_fps = 60,
     max_devices = 1,
@@ -314,11 +316,11 @@ BEGIN
   WHERE id = target_user_id;
 
   UPDATE public.licenses
-  SET tier = 'FREE', max_devices = 1, expires_at = NULL
+  SET tier = 'CREATOR', max_devices = 1, expires_at = NULL
   WHERE user_id = target_user_id;
 
   INSERT INTO public.audit_logs (category, level, message, user_id)
-  VALUES ('LICENSE', 'INFO', 'Downgraded to Free Plan', target_user_id);
+  VALUES ('LICENSE', 'INFO', 'Downgraded to Creator plan', target_user_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

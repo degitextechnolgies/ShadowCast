@@ -221,7 +221,7 @@ interface AdminUser {
   name: string
   email: string
   avatar: string
-  tier: 'PRO ULTRA' | 'ENTERPRISE' | 'CREATOR' | 'FREE'
+  tier: 'CREATOR PRO' | 'CREATOR'
   licenseKey: string
   activeDevices: number
   status: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED'
@@ -257,8 +257,8 @@ const INITIAL_USERS: AdminUser[] = [
     name: 'Abhishek Kumar',
     email: 'abhishek@shadowcast.io',
     avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=abhishek@shadowcast.io',
-    tier: 'ENTERPRISE',
-    licenseKey: 'SHADOW-ENT-9482-TITAN-X',
+    tier: 'CREATOR PRO',
+    licenseKey: 'SHADOWCAST-PRO-9482-TITAN',
     activeDevices: 4,
     status: 'ACTIVE',
     lastSeen: 'Just now',
@@ -269,7 +269,7 @@ const INITIAL_USERS: AdminUser[] = [
     name: 'Deekshith (Root)',
     email: 'ppdeekshith@gmail.com',
     avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=ppdeekshith@gmail.com',
-    tier: 'PRO ULTRA',
+    tier: 'CREATOR PRO',
     licenseKey: 'SHADOWCAST-PRO-8123-PASS',
     activeDevices: 2,
     status: 'ACTIVE',
@@ -354,16 +354,14 @@ export const Admin: React.FC = () => {
         const liveUsers: AdminUser[] = profiles.map((p) => {
           const userLicense = licenses?.find((l) => l.user_id === p.id)
 
-          let tier: 'ENTERPRISE' | 'PRO ULTRA' | 'CREATOR' | 'FREE' = 'FREE'
-          if (p.is_pro || p.plan?.includes('Pro') || userLicense?.tier === 'PRO ULTRA') {
-            tier = 'PRO ULTRA'
-          } else if (p.plan?.includes('Enterprise') || p.role === 'admin' || userLicense?.tier === 'ENTERPRISE') {
-            tier = 'ENTERPRISE'
-          } else if (p.plan?.includes('Creator') || userLicense?.tier === 'CREATOR') {
-            tier = 'CREATOR'
-          } else {
-            tier = 'FREE'
-          }
+          // Exactly 2 tiers: CREATOR PRO or CREATOR
+          const isPro = Boolean(
+            p.is_pro ||
+            p.plan?.toLowerCase().includes('pro') ||
+            p.plan?.toLowerCase().includes('ultra') ||
+            userLicense?.tier?.toUpperCase().includes('PRO')
+          )
+          const tier: 'CREATOR PRO' | 'CREATOR' = isPro ? 'CREATOR PRO' : 'CREATOR'
 
           const lastActiveDate = new Date(p.updated_at || p.created_at || Date.now())
           const diffMinutes = Math.floor((Date.now() - lastActiveDate.getTime()) / (1000 * 60))
@@ -508,7 +506,7 @@ export const Admin: React.FC = () => {
   const [isNewUserModalOpen, setIsNewUserModalOpen] = useState(false)
   const [newUserName, setNewUserName] = useState('')
   const [newUserEmail, setNewUserEmail] = useState('')
-  const [newUserTier, setNewUserTier] = useState<'PRO ULTRA' | 'ENTERPRISE' | 'CREATOR' | 'FREE'>('PRO ULTRA')
+  const [newUserTier, setNewUserTier] = useState<'CREATOR PRO' | 'CREATOR'>('CREATOR PRO')
 
   const [inspectSession, setInspectSession] = useState<StreamSession | null>(null)
 
@@ -551,22 +549,23 @@ export const Admin: React.FC = () => {
   const handleUpgradeTier = async (userId: string) => {
     const target = users.find((u) => u.id === userId)
     if (!target) return
-    const nextTier: 'PRO ULTRA' | 'ENTERPRISE' = target.tier === 'PRO ULTRA' ? 'ENTERPRISE' : 'PRO ULTRA'
+    const nextTier: 'CREATOR PRO' | 'CREATOR' = target.tier === 'CREATOR PRO' ? 'CREATOR' : 'CREATOR PRO'
+    const isPro = nextTier === 'CREATOR PRO'
 
     setUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, tier: nextTier, status: 'ACTIVE' } : u))
     )
-    showToast(`Upgraded ${target.name} to ${nextTier}!`, 'success')
+    showToast(`Updated ${target.name} tier to ${nextTier}!`, 'success')
 
     try {
       await supabase
         .from('profiles')
         .update({
-          is_pro: true,
-          plan: nextTier === 'PRO ULTRA' ? 'Pro Ultra (4K)' : 'Enterprise Master',
-          max_resolution: '4K UHD',
-          max_fps: 120,
-          max_devices: 5,
+          is_pro: isPro,
+          plan: isPro ? 'Creator Pro' : 'Creator',
+          max_resolution: isPro ? '4K UHD' : '1080p',
+          max_fps: isPro ? 120 : 60,
+          max_devices: isPro ? 5 : 1,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId)
@@ -814,7 +813,7 @@ export const Admin: React.FC = () => {
                 <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">48,290</div>
                 <div className="flex items-center gap-1.5 mt-2 text-[11px] text-purple-400">
                   <span className="font-bold">14,820</span>
-                  <span className="text-slate-500">Pro Ultra Licenses</span>
+                  <span className="text-slate-500">Creator Pro Licenses</span>
                 </div>
               </motion.div>
 
@@ -1031,7 +1030,7 @@ export const Admin: React.FC = () => {
             <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-purple-950/30 border border-slate-800/80 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h3 className="text-base font-bold text-white">License Operations &amp; Provisioning</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Issue cryptographic PRO ULTRA license keys or revoke malicious pilots instantly.</p>
+                <p className="text-xs text-slate-400 mt-0.5">Issue cryptographic CREATOR PRO license keys or revoke malicious pilots instantly.</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -1205,7 +1204,7 @@ export const Admin: React.FC = () => {
                 </button>
 
                 <span className="text-xs text-slate-400 font-medium ml-2">Tier:</span>
-                {['ALL', 'ENTERPRISE', 'PRO ULTRA', 'CREATOR', 'FREE'].map((tier) => (
+                {['ALL', 'CREATOR PRO', 'CREATOR'].map((tier) => (
                   <button
                     key={tier}
                     onClick={() => setTierFilter(tier)}
@@ -1277,13 +1276,9 @@ export const Admin: React.FC = () => {
                         <td className="py-3.5 px-4">
                           <span
                             className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider ${
-                              u.tier === 'ENTERPRISE'
-                                ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                                : u.tier === 'PRO ULTRA'
+                              u.tier === 'CREATOR PRO'
                                 ? 'bg-red-500/15 text-red-300 border border-red-500/30'
-                                : u.tier === 'CREATOR'
-                                ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
-                                : 'bg-slate-800 text-slate-400'
+                                : 'bg-slate-800 text-slate-300 border border-slate-700/60'
                             }`}
                           >
                             {u.tier}
@@ -1328,10 +1323,14 @@ export const Admin: React.FC = () => {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleUpgradeTier(u.id)}
-                              className="px-2.5 py-1 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-xs font-medium cursor-pointer"
-                              title="Promote tier"
+                              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-colors ${
+                                u.tier === 'CREATOR'
+                                  ? 'bg-red-500/15 hover:bg-red-500/25 text-red-300 border-red-500/30'
+                                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                              }`}
+                              title="Toggle Tier"
                             >
-                              Upgrade
+                              {u.tier === 'CREATOR' ? 'Upgrade to Pro' : 'Downgrade'}
                             </button>
                             <button
                               onClick={() => handleToggleUserStatus(u.id)}
@@ -1540,7 +1539,7 @@ export const Admin: React.FC = () => {
                 <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
                   <div>
                     <div className="text-xs font-bold text-white">Public Registration Gateway</div>
-                    <div className="text-[11px] text-slate-400">Allow new users to sign up via web and activate Community tier</div>
+                    <div className="text-[11px] text-slate-400">Allow new users to sign up via web and activate Creator tier</div>
                   </div>
                   <button
                     onClick={() => setSystemConfig({ ...systemConfig, allowPublicRegistration: !systemConfig.allowPublicRegistration })}
@@ -1746,13 +1745,11 @@ export const Admin: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Entitlement Tier</label>
                   <select
                     value={newUserTier}
-                    onChange={(e) => setNewUserTier(e.target.value as any)}
+                    onChange={(e) => setNewUserTier(e.target.value as 'CREATOR PRO' | 'CREATOR')}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-purple-500"
                   >
-                    <option value="PRO ULTRA">PRO ULTRA (All Platforms, 4K 120FPS, Multi-Display)</option>
-                    <option value="ENTERPRISE">ENTERPRISE (Infinite Nodes, SDK Access, Dedicated Relay)</option>
-                    <option value="CREATOR">CREATOR (1080p 60FPS, 2 Devices)</option>
-                    <option value="FREE">FREE (Standard)</option>
+                    <option value="CREATOR PRO">CREATOR PRO (4K 120FPS, 5 Devices, NVENC AV1)</option>
+                    <option value="CREATOR">CREATOR (1080p 60FPS, 1 Device)</option>
                   </select>
                 </div>
 

@@ -18,14 +18,21 @@ function mapSupabaseUser(sbUser: SupabaseUser): User {
     ? new Date(sbUser.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : 'Recent'
 
+  const isPro = Boolean(
+    meta.is_pro ??
+    meta.isPro ??
+    (meta.plan && (meta.plan.toLowerCase().includes('pro') || meta.plan.toLowerCase().includes('ultra')))
+  )
+  const plan = isPro ? 'Creator Pro' : 'Creator'
+
   return {
     id: sbUser.id,
     name: capitalizedName,
     email: sbUser.email || '',
     avatar,
-    isPro: Boolean(meta.is_pro ?? meta.isPro ?? (meta.plan && meta.plan !== 'Free Plan')),
-    plan: meta.plan || 'Free Plan',
-    connectedDevices: meta.connected_devices ?? meta.connectedDevices ?? 0,
+    isPro,
+    plan,
+    connectedDevices: meta.connected_devices ?? meta.connectedDevices ?? (isPro ? 2 : 1),
     joinedAt,
   }
 }
@@ -161,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: cleanEmail === 'admin' ? PRIMARY_ADMIN_EMAIL : cleanEmail,
         avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=admin',
         isPro: true,
-        plan: 'Enterprise (Admin)',
+        plan: 'Creator Pro',
         connectedDevices: 1,
         joinedAt: 'System Root',
       }
@@ -197,7 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: email.trim().toLowerCase(),
         avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
         isPro: false,
-        plan: 'Free Plan',
+        plan: 'Creator',
         connectedDevices: 0,
         joinedAt: 'Recent',
       }
@@ -238,7 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email.trim().toLowerCase(),
           avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
           isPro: false,
-          plan: 'Free Plan',
+          plan: 'Creator',
           connectedDevices: 0,
           joinedAt: 'Recent',
         }
