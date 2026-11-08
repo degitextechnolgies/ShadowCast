@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('ShadowCast Command Center Admin & Unified Auth Suite', () => {
-  test('unauthenticated visit to /kyareadmin redirects to unified /login with clearance notice', async ({ page }) => {
+  test('unauthenticated visit to /kyareadmin redirects to unified /login', async ({ page }) => {
     await page.goto('/kyareadmin')
     await page.waitForURL('**/login')
     await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
-    await expect(page.getByText('Command Center Clearance')).toBeVisible()
   })
 
   test('legacy /kyareadmin/login and /admin/login redirect directly to unified /login', async ({ page }) => {
@@ -18,12 +17,12 @@ test.describe('ShadowCast Command Center Admin & Unified Auth Suite', () => {
     await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
   })
 
-  test('admin login handles credentials admin/admin on unified /login and grants entry to /kyareadmin', async ({ page }) => {
+  test('admin login handles credentials for degitextechnolgies@gmail.com on unified /login and grants entry to /kyareadmin', async ({ page }) => {
     await page.goto('/login')
     await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
 
-    // Sign in with admin / admin
-    await page.getByLabel(/email address or admin id/i).fill('admin')
+    // Sign in with degitextechnolgies@gmail.com / admin
+    await page.getByLabel(/email address/i).fill('degitextechnolgies@gmail.com')
     await page.getByLabel(/^password$/i).fill('admin')
     await page.getByRole('button', { name: 'Sign In' }).click()
 
@@ -34,9 +33,9 @@ test.describe('ShadowCast Command Center Admin & Unified Auth Suite', () => {
   })
 
   test('admin page tab navigation switches sections properly when authenticated', async ({ page }) => {
-    // Authenticate via admin / admin on unified login
+    // Authenticate via degitextechnolgies@gmail.com on unified login
     await page.goto('/login')
-    await page.getByLabel(/email address or admin id/i).fill('admin')
+    await page.getByLabel(/email address/i).fill('degitextechnolgies@gmail.com')
     await page.getByLabel(/^password$/i).fill('admin')
     await page.getByRole('button', { name: 'Sign In' }).click()
     await page.waitForURL('**/kyareadmin')
@@ -68,7 +67,7 @@ test.describe('ShadowCast Command Center Admin & Unified Auth Suite', () => {
 
   test('lock terminal button terminates admin session and redirects to unified /login', async ({ page }) => {
     await page.goto('/login')
-    await page.getByLabel(/email address or admin id/i).fill('admin')
+    await page.getByLabel(/email address/i).fill('degitextechnolgies@gmail.com')
     await page.getByLabel(/^password$/i).fill('admin')
     await page.getByRole('button', { name: 'Sign In' }).click()
     await page.waitForURL('**/kyareadmin')

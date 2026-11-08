@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { isSuperAdminEmail } from '../services/adminAuthService'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -77,13 +78,15 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            to="/kyareadmin"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-red-200 transition-colors"
-          >
-            <Shield size={14} />
-            <span>Admin Portal</span>
-          </Link>
+          {isSuperAdminEmail(user?.email) && (
+            <Link
+              to="/kyareadmin"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-red-200 transition-colors"
+            >
+              <Shield size={14} />
+              <span>Admin Portal</span>
+            </Link>
+          )}
 
           <button
             onClick={handleSignOut}

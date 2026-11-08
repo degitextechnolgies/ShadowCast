@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { isSuperAdminEmail, adminAuthService } from '../services/adminAuthService'
 
 export const AuthCallback: React.FC = () => {
   const navigate = useNavigate()
@@ -12,6 +14,25 @@ export const AuthCallback: React.FC = () => {
 
   useEffect(() => {
     let mounted = true
+
+    const handleSuccessfulSession = (session: Session) => {
+      if (handledRef.current || !mounted) return
+      handledRef.current = true
+
+      const userEmail = session.user?.email
+      if (isSuperAdminEmail(userEmail)) {
+        adminAuthService.setAdminSessionForUser(
+          userEmail!,
+          session.user.user_metadata?.full_name || 'Degitex Administrator',
+          session.user.id
+        )
+        showToast('Administrator clearance verified. Opening Command Center...', 'success')
+        navigate('/kyareadmin', { replace: true })
+      } else {
+        showToast('Authenticated successfully with Google!', 'success')
+        navigate('/dashboard', { replace: true })
+      }
+    }
 
     const processOAuthCallback = async () => {
       if (handledRef.current) return
@@ -55,11 +76,7 @@ export const AuthCallback: React.FC = () => {
             return
           }
           if (data?.session) {
-            handledRef.current = true
-            if (mounted) {
-              showToast('Authenticated successfully with Google!', 'success')
-              navigate('/dashboard', { replace: true })
-            }
+            handleSuccessfulSession(data.session)
             return
           }
         }
@@ -76,22 +93,14 @@ export const AuthCallback: React.FC = () => {
         }
 
         if (data?.session) {
-          handledRef.current = true
-          if (mounted) {
-            showToast('Authenticated successfully with Google!', 'success')
-            navigate('/dashboard', { replace: true })
-          }
+          handleSuccessfulSession(data.session)
           return
         }
 
         // 4. Listen for SIGNED_IN event from Supabase auth listener
         const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
           if (!handledRef.current && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
-            handledRef.current = true
-            if (mounted) {
-              showToast('Signed in successfully!', 'success')
-              navigate('/dashboard', { replace: true })
-            }
+            handleSuccessfulSession(session)
           }
         })
 
@@ -100,8 +109,7 @@ export const AuthCallback: React.FC = () => {
           if (!handledRef.current && mounted) {
             const { data: fallbackData } = await supabase.auth.getSession()
             if (fallbackData?.session) {
-              handledRef.current = true
-              navigate('/dashboard', { replace: true })
+              handleSuccessfulSession(fallbackData.session)
             } else {
               navigate('/login', { replace: true })
             }

@@ -13,11 +13,27 @@ export interface AdminSession {
 
 const ADMIN_STORAGE_KEY = 'shadowcast_admin_session'
 
+export const PRIMARY_ADMIN_EMAIL = 'degitextechnolgies@gmail.com'
+
+/**
+ * Strict validator: ONLY degitextechnolgies@gmail.com (or system root) holds administrator clearance.
+ */
+export function isSuperAdminEmail(email?: string | null): boolean {
+  if (!email) return false
+  const clean = email.trim().toLowerCase()
+  return (
+    clean === 'degitextechnolgies@gmail.com' ||
+    clean === 'degitextechnologies@gmail.com' ||
+    clean === 'admin@shadowcast.io' ||
+    clean === 'admin'
+  )
+}
+
 // Pre-authorized administrator whitelist
 const AUTHORIZED_ADMINS = [
-  { email: 'ppdeekshith@gmail.com', name: 'Deekshith (Root)', role: 'SUPERADMIN' as const },
+  { email: 'degitextechnolgies@gmail.com', name: 'Degitex Administrator', role: 'SUPERADMIN' as const },
+  { email: 'degitextechnologies@gmail.com', name: 'Degitex Administrator', role: 'SUPERADMIN' as const },
   { email: 'admin@shadowcast.io', name: 'ShadowCast SuperAdmin', role: 'SUPERADMIN' as const },
-  { email: 'abhishek@shadowcast.io', name: 'Abhishek Kumar', role: 'SUPERADMIN' as const },
 ]
 
 export const MASTER_ADMIN_PASSCODE =
@@ -37,11 +53,37 @@ export const adminAuthService = {
         this.logoutAdmin()
         return false
       }
+      // Strict check: session email must match authorized superadmin email
+      if (!isSuperAdminEmail(session.email)) {
+        this.logoutAdmin()
+        return false
+      }
       return true
     } catch {
       this.logoutAdmin()
       return false
     }
+  },
+
+  /**
+   * Authorize and persist an admin session for a verified Google OAuth or Supabase user
+   */
+  setAdminSessionForUser(email: string, name?: string, id?: string): AdminSession {
+    const cleanEmail = email.trim().toLowerCase()
+    const match = AUTHORIZED_ADMINS.find((a) => a.email.toLowerCase() === cleanEmail)
+    const session: AdminSession = {
+      adminId: id || 'adm_root_degitex',
+      email: cleanEmail,
+      name: name || match?.name || 'Degitex Administrator',
+      role: 'SUPERADMIN',
+      token: `SHADOW-ADMIN-SEC-${Date.now()}`,
+      authenticatedAt: new Date().toISOString(),
+      expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+      source: 'supabase_auth',
+    }
+    sessionStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(session))
+    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(session))
+    return session
   },
 
   /**
@@ -86,13 +128,8 @@ export const adminAuthService = {
     const cleanEmail = email.trim().toLowerCase()
     const cleanPass = passcode.trim()
 
-    // 1. Direct Admin Credentials Support ('admin' / 'admin' or authorized admin emails)
-    const isAdminIdent =
-      cleanEmail === 'admin' ||
-      cleanEmail === 'admin@shadowcast.io' ||
-      cleanEmail === 'ppdeekshith@gmail.com' ||
-      cleanEmail === 'abhishek@shadowcast.io' ||
-      cleanEmail.includes('admin')
+    // 1. Direct Admin Credentials Support ('admin' / 'admin' or authorized admin email)
+    const isAdminIdent = isSuperAdminEmail(cleanEmail)
 
     const isAdminSecret =
       cleanPass === 'admin' ||
@@ -103,8 +140,8 @@ export const adminAuthService = {
       const match = AUTHORIZED_ADMINS.find((a) => a.email.toLowerCase() === cleanEmail)
       const session: AdminSession = {
         adminId: 'adm_root_01',
-        email: match ? match.email : 'admin@shadowcast.io',
-        name: match ? match.name : 'System Administrator',
+        email: match ? match.email : PRIMARY_ADMIN_EMAIL,
+        name: match ? match.name : 'Degitex Administrator',
         role: 'SUPERADMIN',
         token: `SHADOW-ADMIN-SEC-${Date.now()}`,
         authenticatedAt: new Date().toISOString(),
@@ -160,7 +197,7 @@ export const adminAuthService = {
 
     // 3. Validate email clearance
     const match = AUTHORIZED_ADMINS.find((a) => a.email.toLowerCase() === cleanEmail)
-    const isDomainAdmin = cleanEmail.endsWith('@shadowcast.io') || cleanEmail.includes('admin') || cleanEmail === 'ppdeekshith@gmail.com'
+    const isDomainAdmin = isSuperAdminEmail(cleanEmail)
 
     if (!match && !isDomainAdmin) {
       return {

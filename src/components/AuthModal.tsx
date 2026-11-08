@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { X, Mail, Lock, User, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/useAuth'
+import { isSuperAdminEmail } from '../services/adminAuthService'
 
 export default function AuthModal() {
   const navigate = useNavigate()
@@ -76,7 +77,7 @@ export default function AuthModal() {
     const trimmedEmail = email.trim().toLowerCase()
     const trimmedPassword = password.trim()
     const isAdmin =
-      (trimmedEmail === 'admin' || trimmedEmail === 'admin@shadowcast.io') &&
+      isSuperAdminEmail(trimmedEmail) &&
       (trimmedPassword === 'admin' || trimmedPassword === 'admin123')
 
     if (!isAdmin && (!email || !/\S+@\S+\.\S+/.test(email))) {
@@ -257,7 +258,7 @@ export default function AuthModal() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com or admin"
+                  placeholder="name@example.com"
                   className="w-full bg-[#160f16] border border-[#2e181e] rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-[#5E5E75] focus:outline-none focus:border-[#FF1025] transition-colors"
                 />
               </div>

@@ -111,7 +111,7 @@ test.describe('ShadowCast Authentication Suite', () => {
     await expect(page.getByRole('heading', { name: 'Welcome to Shadow Cast' })).toBeVisible()
 
     // Fill admin credentials without '@' symbol
-    await page.getByPlaceholder('name@example.com or admin').fill('admin')
+    await page.getByPlaceholder('name@example.com').fill('admin')
     await page.getByPlaceholder('••••••••').fill('admin')
     await page.getByRole('button', { name: /Sign In to Dashboard/i }).click()
 

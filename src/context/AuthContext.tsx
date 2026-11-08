@@ -3,7 +3,7 @@ import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import { AuthContext, type User, type ToastInfo } from './authContextDef'
 import { supabase } from '../lib/supabase'
 import { authService } from '../services/authService'
-import { adminAuthService } from '../services/adminAuthService'
+import { adminAuthService, isSuperAdminEmail, PRIMARY_ADMIN_EMAIL } from '../services/adminAuthService'
 
 function mapSupabaseUser(sbUser: SupabaseUser): User {
   const meta = sbUser.user_metadata || {}
@@ -64,6 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (initialSession?.user) {
         setSupabaseUser(initialSession.user)
         setUser(mapSupabaseUser(initialSession.user))
+        if (initialSession.user.email && isSuperAdminEmail(initialSession.user.email)) {
+          adminAuthService.setAdminSessionForUser(
+            initialSession.user.email,
+            initialSession.user.user_metadata?.full_name || 'Degitex Administrator',
+            initialSession.user.id
+          )
+        }
       } else {
         const savedUser =
           localStorage.getItem('shadowcast_active_user') ||
@@ -90,6 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (currentSession?.user) {
         setSupabaseUser(currentSession.user)
         setUser(mapSupabaseUser(currentSession.user))
+        if (currentSession.user.email && isSuperAdminEmail(currentSession.user.email)) {
+          adminAuthService.setAdminSessionForUser(
+            currentSession.user.email,
+            currentSession.user.user_metadata?.full_name || 'Degitex Administrator',
+            currentSession.user.id
+          )
+        }
       } else {
         setSupabaseUser(null)
         setUser(null)
@@ -135,16 +149,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const cleanEmail = email.trim().toLowerCase()
     const cleanPass = password.trim()
 
-    // Direct Admin Sign In Support ('admin' / 'admin' or authorized email)
+    // Direct Admin Sign In Support (Degitex admin email or authorized credentials)
     if (
-      (cleanEmail === 'admin' || cleanEmail === 'admin@shadowcast.io' || cleanEmail === 'ppdeekshith@gmail.com') &&
+      isSuperAdminEmail(cleanEmail) &&
       (cleanPass === 'admin' || cleanPass === 'admin123' || cleanPass === 'ShadowCast#Admin2026!')
     ) {
       await adminAuthService.loginAdmin(cleanEmail, cleanPass)
       const adminUser: User = {
         id: 'usr_admin_root',
-        name: 'System Administrator',
-        email: 'admin@shadowcast.io',
+        name: 'Degitex Administrator',
+        email: cleanEmail === 'admin' ? PRIMARY_ADMIN_EMAIL : cleanEmail,
         avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=admin',
         isPro: true,
         plan: 'Enterprise (Admin)',
@@ -155,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionStorage.setItem('shadowcast_active_user', JSON.stringify(adminUser))
       setUser(adminUser)
       closeAuthModal()
-      showToast('Admin clearance granted! Welcome, Administrator.', 'success')
+      showToast('Administrator clearance verified. Opening Command Center...', 'success')
       return { success: true }
     }
 
