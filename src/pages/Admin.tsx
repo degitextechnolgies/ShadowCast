@@ -12,6 +12,7 @@ import {
   X,
   Search,
   Cpu,
+  LogOut,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
@@ -311,7 +312,7 @@ const INITIAL_LOGS: LogEntry[] = [
 ]
 
 export const Admin: React.FC = () => {
-  const { user, showToast } = useAuth()
+  const { user, showToast, signOut } = useAuth()
   const navigate = useNavigate()
   const adminSession = adminAuthService.getAdminSession()
 
@@ -484,9 +485,10 @@ export const Admin: React.FC = () => {
     }
   }, [])
 
-  const handleAdminSignOut = () => {
+  const handleAdminSignOut = async () => {
     adminAuthService.logoutAdmin()
-    showToast('Admin session terminated. Terminal locked.', 'info')
+    await signOut()
+    showToast('Admin signed out successfully. Terminal locked.', 'info')
     navigate('/login', { replace: true })
   }
 
@@ -713,6 +715,15 @@ export const Admin: React.FC = () => {
             <button
               onClick={handleAdminSignOut}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-white transition-colors cursor-pointer"
+              title="Sign Out of Admin Console"
+            >
+              <LogOut size={14} />
+              <span>Sign Out</span>
+            </button>
+
+            <button
+              onClick={handleAdminSignOut}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Lock Admin Terminal"
             >
               <span>Lock Terminal</span>

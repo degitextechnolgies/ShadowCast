@@ -18,7 +18,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onSwitchToRegister,
   onForgotPasswordClick,
 }) => {
-  const { signIn, showToast } = useAuth()
+  const { user, signIn, signOut, showToast } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -89,6 +89,26 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           Sign in to access your low-latency streaming hub & paired devices.
         </p>
       </div>
+
+      {/* Active User Indicator with Sign Out */}
+      {user && (
+        <div className="mb-5 p-3 rounded-xl bg-purple-950/40 border border-purple-500/30 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <img src={user.avatar} alt={user.name} className="w-6 h-6 rounded-full object-cover" />
+            <span className="text-slate-300">Signed in as <strong className="text-white">{user.name}</strong></span>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              await signOut()
+              showToast('Signed out successfully.', 'info')
+            }}
+            className="text-red-400 hover:text-red-300 font-semibold cursor-pointer underline transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      )}
 
       {/* Alert Notices */}
       <AnimatePresence>
