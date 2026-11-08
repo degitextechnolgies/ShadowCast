@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AuthLayout } from '../components/auth/AuthLayout'
 import { PasswordInput } from '../components/auth/PasswordInput'
 import { useAuth } from '../hooks/useAuth'
+import SEO from '../components/SEO'
 
 export const ResetPassword: React.FC = () => {
   const { updatePassword, showToast } = useAuth()
@@ -52,6 +53,7 @@ export const ResetPassword: React.FC = () => {
 
   return (
     <AuthLayout activePage="reset">
+      <SEO pageKey="resetPassword" />
       <div className="w-full text-left">
         {/* Heading */}
         <div className="mb-6">

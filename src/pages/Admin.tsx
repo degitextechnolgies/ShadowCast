@@ -19,6 +19,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { adminAuthService } from '../services/adminAuthService'
 import { supabase } from '../lib/supabase'
+import SEO from '../components/SEO'
 
 // --- Lightweight, Type-Safe Pixel-Perfect SVG Icons ---
 
@@ -667,6 +668,7 @@ export const Admin: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#050509] text-white flex flex-col justify-between relative overflow-x-hidden selection:bg-[#FF1025] selection:text-white">
+      <SEO pageKey="admin" />
       {/* Background Cinematic Aura */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-0 right-1/3 w-[700px] h-[700px] bg-red-600/10 rounded-full blur-[150px]" />

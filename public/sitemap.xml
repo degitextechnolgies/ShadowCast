@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://shadowcast.in/</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://shadowcast.in/og-image.png</image:loc>
+      <image:title>ShadowCast — Ultra Low-Latency Screen Mirroring for Windows</image:title>
+      <image:caption>ShadowCast Windows screen mirroring application preview in 4K 120FPS</image:caption>
+    </image:image>
+  </url>
+</urlset>

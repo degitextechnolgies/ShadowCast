@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import SEO from '../components/SEO'
 import { isSuperAdminEmail } from '../services/adminAuthService'
 
 const CURRENT_YEAR = new Date().getFullYear()
@@ -51,6 +52,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#050509] text-white flex flex-col justify-between relative overflow-x-hidden selection:bg-purple-600 selection:text-white">
+      <SEO pageKey="dashboard" />
       {/* Background Lighting */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-purple-700/10 rounded-full blur-[140px]" />

@@ -4,6 +4,7 @@ import { Mail, ArrowLeft, ArrowRight, AlertCircle, CheckCircle2, Lock } from 'lu
 import { Link } from 'react-router-dom'
 import { AuthLayout } from '../components/auth/AuthLayout'
 import { useAuth } from '../hooks/useAuth'
+import SEO from '../components/SEO'
 
 export const ForgotPassword: React.FC = () => {
   const { resetPassword } = useAuth()
@@ -43,6 +44,7 @@ export const ForgotPassword: React.FC = () => {
 
   return (
     <AuthLayout activePage="forgot">
+      <SEO pageKey="forgotPassword" />
       <div className="w-full text-left">
         {/* Back Link */}
         <Link

@@ -13,6 +13,13 @@ import Download from '../components/Download'
 import FAQ from '../components/FAQ'
 import Footer from '../components/Footer'
 import AuthModal from '../components/AuthModal'
+import SEO from '../components/SEO'
+import {
+  SHADOWCAST_ORGANIZATION_SCHEMA,
+  SHADOWCAST_WEBSITE_SCHEMA,
+  SHADOWCAST_SOFTWARE_SCHEMA,
+  SHADOWCAST_FAQ_SCHEMA,
+} from '../components/StructuredData'
 
 export default function Landing() {
   const navigate = useNavigate()
@@ -76,6 +83,15 @@ export default function Landing() {
 
   return (
     <>
+      <SEO
+        pageKey="home"
+        structuredData={[
+          SHADOWCAST_ORGANIZATION_SCHEMA,
+          SHADOWCAST_WEBSITE_SCHEMA,
+          SHADOWCAST_SOFTWARE_SCHEMA,
+          SHADOWCAST_FAQ_SCHEMA,
+        ]}
+      />
       <Navbar />
       <main>
         <Hero />

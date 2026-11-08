@@ -1,23 +1,233 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050509" />
     <meta name="color-scheme" content="dark" />
-    <title>Shadow Cast — Your Screen. Without Limits.</title>
-    <meta name="description" content="Shadow Cast is a premium Windows screen-mirroring application. Connect your devices and experience everything on a bigger screen." />
-    <meta property="og:title" content="Shadow Cast — Your Screen. Without Limits." />
-    <meta property="og:description" content="Seamless screen mirroring for Android, iPhone and Windows." />
-    <!-- Preconnect to external critical API origins for faster TTFB & auth latency -->
+
+    <!-- Technical SEO Primary Metadata -->
+    <title>ShadowCast — Ultra Low-Latency Screen Mirroring for Windows</title>
+    <meta
+      name="description"
+      content="Experience ultra low-latency (0.8ms) screen mirroring from iPhone, Android, and PC to Windows in up to 4K 120FPS with NVENC hardware acceleration and lossless audio."
+    />
+    <meta
+      name="keywords"
+      content="screen mirroring, screen mirroring for windows, airplay for windows, scrcpy mirroring, low latency screen cast, 4k 120fps streaming, nvenc hardware acceleration, iphone to windows mirroring, android to pc screen mirror, shadowcast"
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://shadowcast.in/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://shadowcast.in/" />
+    <meta property="og:title" content="ShadowCast — Ultra Low-Latency Screen Mirroring for Windows" />
+    <meta
+      property="og:description"
+      content="Stream iPhone, Android, and PC to Windows with 0.8ms pipeline latency and up to 4K 120FPS fidelity. Hardware-accelerated with NVENC AV1."
+    />
+    <meta property="og:image" content="https://shadowcast.in/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="ShadowCast — Ultra Low-Latency Screen Mirroring for Windows in 4K 120FPS" />
+    <meta property="og:site_name" content="ShadowCast" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@shadowcast_in" />
+    <meta name="twitter:creator" content="@shadowcast_in" />
+    <meta name="twitter:title" content="ShadowCast — Ultra Low-Latency Screen Mirroring for Windows" />
+    <meta
+      name="twitter:description"
+      content="Stream iPhone, Android, and PC to Windows with 0.8ms pipeline latency and up to 4K 120FPS fidelity. Hardware-accelerated with NVENC AV1."
+    />
+    <meta name="twitter:image" content="https://shadowcast.in/og-image.png" />
+
+    <!-- Search Engine Verification Placeholders (Replace with your actual verification tokens) -->
+    <!-- Google Search Console -->
+    <!-- <meta name="google-site-verification" content="YOUR_GOOGLE_SEARCH_CONSOLE_VERIFICATION_TOKEN" /> -->
+    <!-- Bing Webmaster Tools -->
+    <!-- <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_TOKEN" /> -->
+
+    <!-- Icons & Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- Preconnect & DNS-Prefetch for Critical Network Origins -->
     <link rel="preconnect" href="https://snnziouhxitblbzybesg.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://snnziouhxitblbzybesg.supabase.co" />
     <link rel="preconnect" href="https://api.dicebear.com" crossorigin />
+
+    <!-- Schema.org JSON-LD Structured Data (Organization + WebSite + SoftwareApplication + FAQPage) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://shadowcast.in/#organization",
+            "name": "ShadowCast",
+            "legalName": "DEGiTEX Technologies",
+            "url": "https://shadowcast.in",
+            "logo": "https://shadowcast.in/favicon.svg",
+            "image": "https://shadowcast.in/og-image.png",
+            "description": "DEGiTEX Technologies develops ShadowCast, a high-performance Windows screen mirroring and streaming platform with ultra low latency and hardware NVENC encoding."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://shadowcast.in/#website",
+            "url": "https://shadowcast.in",
+            "name": "ShadowCast",
+            "description": "Ultra Low-Latency Screen Mirroring for Windows",
+            "publisher": { "@id": "https://shadowcast.in/#organization" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://shadowcast.in/#software",
+            "name": "ShadowCast",
+            "operatingSystem": "Windows 10, Windows 11 (x64)",
+            "applicationCategory": "MultimediaApplication",
+            "applicationSubCategory": "Screen Mirroring & Streaming",
+            "url": "https://shadowcast.in",
+            "image": "https://shadowcast.in/og-image.png",
+            "softwareVersion": "1.8.5",
+            "description": "ShadowCast is a low-latency (0.8ms) screen mirroring host application for Windows. Supports wireless AirPlay 2 and USB Scrcpy from iOS and Android devices at up to 4K 120FPS with NVENC acceleration.",
+            "offers": [
+              {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD",
+                "name": "Creator Edition",
+                "description": "1080p 60FPS screen mirroring with 1 paired device"
+              },
+              {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD",
+                "name": "Creator Pro",
+                "description": "4K 120FPS screen mirroring, 5 paired devices, and NVENC AV1 encoding"
+              }
+            ],
+            "featureList": [
+              "Sub-millisecond pipeline latency (0.8ms)",
+              "4K UHD 120FPS ultra-smooth streaming",
+              "NVENC AV1 and QuickSync hardware decoding",
+              "Wireless AirPlay 2 receiver for iPhone and iPad",
+              "Low-latency USB mirroring for Android",
+              "Lossless 320kbps Opus Studio audio capture"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://shadowcast.in/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is Shadow Cast?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Shadow Cast is a Windows application for screen mirroring from supported devices."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Which devices are supported?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Android and iPhone devices, connected wirelessly or via USB where supported."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does wireless mirroring work?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Devices are discovered on the network and connected using supported workflows."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I connect using USB?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, where the device and driver support it."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it support iPhone?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, iPhone is supported via wireless and USB where available."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does it support Android?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, Android is supported via wireless and USB where available."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I record my screen?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Screen recording functionality is included where implemented."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What if a device is not detected?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Use the troubleshooting and diagnostics tools in the app."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What are the system requirements?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Windows 10/11 (x64). Additional requirements depend on features used."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How do I install Shadow Cast?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Run the installer when available and follow the setup wizard."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
+    <!-- Fallback Content for Crawlers and Non-JS Clients -->
+    <noscript>
+      <div style="padding: 2rem; background: #050509; color: #ffffff; font-family: system-ui, sans-serif;">
+        <h1>ShadowCast — Ultra Low-Latency Screen Mirroring for Windows</h1>
+        <p>Experience ultra low-latency (0.8ms) screen mirroring from iPhone, Android, and PC to Windows in up to 4K 120FPS with NVENC hardware acceleration and lossless audio.</p>
+        <h2>Key Capabilities</h2>
+        <ul>
+          <li>Wireless AirPlay 2 screen mirroring for iPhone and iPad</li>
+          <li>Low-latency USB and Wi-Fi screen mirroring for Android</li>
+          <li>Hardware-accelerated NVENC AV1 &amp; QuickSync decoding</li>
+          <li>0.8ms pipeline latency for competitive mobile gaming</li>
+          <li>Up to 4K UHD 120FPS resolution and Opus Studio audio</li>
+        </ul>
+        <p>Visit <a href="https://shadowcast.in" style="color: #FF1025;">https://shadowcast.in</a> with JavaScript enabled to download the ShadowCast Windows installer.</p>
+      </div>
+    </noscript>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

@@ -1,0 +1,29 @@
+# https://shadowcast.in/robots.txt
+# Technical SEO: Robots Exclusion Protocol for ShadowCast
+User-agent: *
+
+# Allow all public landing and promotional sections
+Allow: /
+Allow: /#features
+Allow: /#how
+Allow: /#download
+Allow: /#faq
+Allow: /assets/
+Allow: /downloads/
+Allow: /favicon.svg
+Allow: /og-image.png
+
+# Disallow private user accounts, dashboards, administration, and auth utility routes
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /kyareadmin
+Disallow: /kyareadmin/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /auth/callback
+Disallow: /reset-password
+Disallow: /forgot-password
+
+# Canonical Sitemap Reference
+Sitemap: https://shadowcast.in/sitemap.xml
