@@ -27,3 +27,4 @@ Disallow: /forgot-password
 
 # Canonical Sitemap Reference
 Sitemap: https://shadowcast.in/sitemap.xml
+

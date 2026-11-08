@@ -135,3 +135,4 @@ export const SEO_PAGES: Record<string, PageSEOConfig> = {
     twitterCard: 'summary',
   },
 }
+

@@ -586,6 +586,31 @@ export const Admin: React.FC = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId)
+
+      await supabase
+        .from('licenses')
+        .update({
+          tier: isPro ? 'CREATOR PRO' : 'CREATOR',
+          max_devices: isPro ? 5 : 1,
+          status: 'ACTIVE',
+        })
+        .eq('user_id', userId)
+
+      // Sync subscriptions table for desktop WPF client
+      if (isPro) {
+        try {
+          await supabase.from('subscriptions').insert({
+            user_id: userId,
+            user_email: target.email.toLowerCase(),
+            plan_id: 'yearly_pro',
+            status: 'active',
+            starts_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          })
+        } catch {
+          // Table pending migration
+        }
+      }
     } catch (err) {
       console.warn('Failed to persist upgrade in Supabase:', err)
     }

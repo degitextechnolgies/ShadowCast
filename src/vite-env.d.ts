@@ -20,8 +20,11 @@ declare module 'lucide-react' {
   export const CheckCircle: LucideIcon
   export const CheckCircle2: LucideIcon
   export const ChevronDown: LucideIcon
+  export const Copy: LucideIcon
+  export const CreditCard: LucideIcon
   export const Cpu: LucideIcon
   export const Download: LucideIcon
+  export const ExternalLink: LucideIcon
   export const Eye: LucideIcon
   export const EyeOff: LucideIcon
   export const FileCheck: LucideIcon
@@ -39,6 +42,7 @@ declare module 'lucide-react' {
   export const Menu: LucideIcon
   export const Monitor: LucideIcon
   export const MonitorPlay: LucideIcon
+  export const QrCode: LucideIcon
   export const Radio: LucideIcon
   export const RefreshCw: LucideIcon
   export const Search: LucideIcon

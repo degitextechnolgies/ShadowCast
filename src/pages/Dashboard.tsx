@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Monitor,
@@ -11,11 +11,16 @@ import {
   CheckCircle2,
   Shield,
   Sparkles,
+  ShieldCheck,
+  CreditCard,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import SEO from '../components/SEO'
 import { isSuperAdminEmail } from '../services/adminAuthService'
+import UpiPaymentModal from '../components/UpiPaymentModal'
+import { fetchUserSubscriptionInfo } from '../services/paymentService'
+import type { SubscriptionInfo } from '../services/paymentService'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -23,6 +28,16 @@ export const Dashboard: React.FC = () => {
   const { user, signOut, showToast } = useAuth()
   const navigate = useNavigate()
   const [copiedKey, setCopiedKey] = useState(false)
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null)
+
+  useEffect(() => {
+    if (user) {
+      fetchUserSubscriptionInfo(user.id, user.email).then((sub) => {
+        setSubscription(sub)
+      })
+    }
+  }, [user])
 
   const licenseToken = user
     ? `SHADOWCAST-${user.isPro ? 'PRO' : 'FREE'}-${user.id.slice(0, 8).toUpperCase()}-PASS`
@@ -190,8 +205,40 @@ export const Dashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Pro Upgrade Banner for Creator Users */}
-        {!user?.isPro && (
+        {/* Pro Status or Upgrade Banner */}
+        {user?.isPro ? (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900/80 to-[#121218] border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30">
+                <ShieldCheck size={22} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  ShadowCast Creator Pro Active
+                  <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                    WATERMARK REMOVED
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {subscription?.isLifetime
+                    ? 'Permanent Lifetime License active • Zero monthly renewals needed.'
+                    : `Active subscription • ${subscription?.daysRemaining || 365} days remaining • 4K UHD 120 FPS unlocked.`}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsUpgradeModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs whitespace-nowrap border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <CreditCard size={13} />
+              <span>Extend / Change Plan</span>
+            </button>
+          </motion.div>
+        ) : (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -204,7 +251,9 @@ export const Dashboard: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold text-white flex items-center gap-2">
                   Upgrade to ShadowCast Creator Pro
-                  <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">4K 120FPS</span>
+                  <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">
+                    4K 120FPS
+                  </span>
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Unlock 3840 × 2160 UHD streaming, uncompressed 320kbps Opus Studio audio, and up to 5 concurrent paired devices.
@@ -212,7 +261,7 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => showToast('Opening Creator Pro upgrade portal...', 'info')}
+              onClick={() => setIsUpgradeModalOpen(true)}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs whitespace-nowrap shadow-lg shadow-purple-900/30 text-center transition-all cursor-pointer"
             >
               Upgrade to Creator Pro
@@ -349,6 +398,19 @@ export const Dashboard: React.FC = () => {
       <footer className="relative z-20 w-full max-w-7xl mx-auto px-6 py-6 text-center text-xs text-slate-500 border-t border-slate-800/80">
         <p>© {CURRENT_YEAR} ShadowCast by DEGiTEX. All rights reserved.</p>
       </footer>
+
+      {/* UPI Upgrade Modal */}
+      <UpiPaymentModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        onSuccess={() => {
+          if (user) {
+            fetchUserSubscriptionInfo(user.id, user.email).then((sub) => {
+              setSubscription(sub)
+            })
+          }
+        }}
+      />
     </div>
   )
 }

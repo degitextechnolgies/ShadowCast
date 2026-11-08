@@ -169,3 +169,4 @@ export const SHADOWCAST_FAQ_SCHEMA = {
     },
   ],
 }
+
