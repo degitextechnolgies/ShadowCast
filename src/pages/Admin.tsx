@@ -227,6 +227,8 @@ interface AdminUser {
   status: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED'
   lastSeen: string
   joinedDate: string
+  isGoogleAccount?: boolean
+  isTestAccount?: boolean
 }
 
 interface RelayNode {
@@ -332,6 +334,7 @@ export const Admin: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>(INITIAL_LOGS)
   const [nodes] = useState<RelayNode[]>(INITIAL_NODES)
   const [isLoggingPaused, setIsLoggingPaused] = useState(false)
+  const [hideTestAccounts, setHideTestAccounts] = useState(true)
 
   // Live Supabase Data Fetcher
   const loadSupabaseData = async () => {
@@ -369,9 +372,28 @@ export const Admin: React.FC = () => {
           else if (diffMinutes > 60) lastSeen = `${Math.floor(diffMinutes / 60)}h ago`
           else if (diffMinutes > 1) lastSeen = `${diffMinutes} mins ago`
 
+          const isGoogle = Boolean(
+            p.avatar_url?.includes('googleusercontent.com') ||
+            p.email?.endsWith('@gmail.com')
+          )
+
+          const isTest = Boolean(
+            p.email?.endsWith('@shadowcast.io') ||
+            p.email?.startsWith('pilot-') ||
+            p.email?.startsWith('persist-') ||
+            p.email?.startsWith('reset-test')
+          )
+
+          let displayName = p.name
+          if (p.email === 'degitextechnolgies@gmail.com' || p.email === 'degitextechnologies@gmail.com') {
+            displayName = 'Degitex Technologies'
+          } else if (!displayName || displayName === 'Shadow Pilot') {
+            displayName = p.email ? p.email.split('@')[0] : 'Pilot'
+          }
+
           return {
             id: p.id,
-            name: p.name || p.email?.split('@')[0] || 'Shadow Pilot',
+            name: displayName,
             email: p.email || 'pilot@shadowcast.io',
             avatar: p.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.id}`,
             tier,
@@ -380,6 +402,8 @@ export const Admin: React.FC = () => {
             status: (userLicense?.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE') as 'ACTIVE' | 'SUSPENDED',
             lastSeen,
             joinedDate: p.created_at ? p.created_at.split('T')[0] : '2026-02-01',
+            isGoogleAccount: isGoogle,
+            isTestAccount: isTest,
           }
         })
         setUsers(liveUsers)
@@ -607,9 +631,10 @@ export const Admin: React.FC = () => {
     ])
   }
 
-  // Filtered Users
+  // Filtered Users (supports hiding synthetic test runner accounts)
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
+      if (hideTestAccounts && u.isTestAccount) return false
       const matchesSearch =
         u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -617,7 +642,7 @@ export const Admin: React.FC = () => {
       const matchesTier = tierFilter === 'ALL' || u.tier === tierFilter
       return matchesSearch && matchesTier
     })
-  }, [users, searchQuery, tierFilter])
+  }, [users, searchQuery, tierFilter, hideTestAccounts])
 
   // Filtered Logs
   const filteredLogs = useMemo(() => {
@@ -1165,8 +1190,21 @@ export const Admin: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 font-medium">Tier:</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setHideTestAccounts(!hideTestAccounts)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    hideTestAccounts
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                      : 'bg-slate-950/60 text-slate-400 border border-slate-800'
+                  }`}
+                  title="Filter out automated test runner accounts"
+                >
+                  <span className={`w-2 h-2 rounded-full ${hideTestAccounts ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                  <span>{hideTestAccounts ? 'Real Pilots Only' : 'All Accounts'}</span>
+                </button>
+
+                <span className="text-xs text-slate-400 font-medium ml-2">Tier:</span>
                 {['ALL', 'ENTERPRISE', 'PRO ULTRA', 'CREATOR', 'FREE'].map((tier) => (
                   <button
                     key={tier}
@@ -1203,14 +1241,36 @@ export const Admin: React.FC = () => {
                       <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <img
-                              src={u.avatar}
-                              alt={u.name}
-                              className="w-9 h-9 rounded-full object-cover ring-1 ring-purple-500/30"
-                            />
+                            <div className="relative">
+                              <img
+                                src={u.avatar}
+                                alt={u.name}
+                                className="w-9 h-9 rounded-full object-cover ring-1 ring-purple-500/30"
+                              />
+                              {u.isGoogleAccount && (
+                                <span
+                                  className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-md ring-1 ring-black/10"
+                                  title="Verified Google Account"
+                                >
+                                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                                  </svg>
+                                </span>
+                              )}
+                            </div>
                             <div>
-                              <div className="font-bold text-white text-xs">{u.name}</div>
-                              <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-white text-xs">{u.name}</span>
+                                {u.isGoogleAccount && (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                                    Google
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono mt-0.5">{u.email}</div>
                             </div>
                           </div>
                         </td>
