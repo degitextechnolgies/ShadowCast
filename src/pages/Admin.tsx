@@ -13,6 +13,7 @@ import {
   Search,
   Cpu,
   LogOut,
+  RefreshCw,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
@@ -336,6 +337,7 @@ export const Admin: React.FC = () => {
   const [nodes] = useState<RelayNode[]>(INITIAL_NODES)
   const [isLoggingPaused, setIsLoggingPaused] = useState(false)
   const [hideTestAccounts, setHideTestAccounts] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Live Supabase Data Fetcher
   const loadSupabaseData = async () => {
@@ -490,6 +492,18 @@ export const Admin: React.FC = () => {
     await signOut()
     showToast('Admin signed out successfully. Terminal locked.', 'info')
     navigate('/login', { replace: true })
+  }
+
+  const handleRefreshUsers = async () => {
+    setIsRefreshing(true)
+    try {
+      await loadSupabaseData()
+      showToast('Fetched latest pilots & licenses from Supabase!', 'success')
+    } catch {
+      showToast('Failed to refresh data from Supabase.', 'error')
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500)
+    }
   }
 
   // System Configuration Flags
@@ -1178,13 +1192,25 @@ export const Admin: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-1">Manage accounts, tier entitlements, license tokens, and hardware pairing allowances</p>
               </div>
 
-              <button
-                onClick={() => setIsNewUserModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-[#FF1025]/20 cursor-pointer self-start sm:self-auto transition-all"
-              >
-                <PlusIcon size={16} />
-                <span>Issue New License</span>
-              </button>
+              <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                <button
+                  onClick={handleRefreshUsers}
+                  disabled={isRefreshing}
+                  className="px-3.5 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 text-white font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-60"
+                  title="Fetch latest pilots & licenses from Supabase"
+                >
+                  <RefreshCw size={14} className={`${isRefreshing ? 'animate-spin text-purple-400' : 'text-slate-300'}`} />
+                  <span>{isRefreshing ? 'Refreshing...' : 'Refresh Users'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsNewUserModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-[#FF1025]/20 cursor-pointer transition-all"
+                >
+                  <PlusIcon size={16} />
+                  <span>Issue New License</span>
+                </button>
+              </div>
             </div>
 
             {/* Filter & Search Bar */}
@@ -1201,6 +1227,15 @@ export const Admin: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={handleRefreshUsers}
+                  disabled={isRefreshing}
+                  className="p-2 rounded-xl bg-slate-950/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors cursor-pointer disabled:opacity-60"
+                  title="Refresh Pilots & Licenses"
+                >
+                  <RefreshCw size={13} className={`${isRefreshing ? 'animate-spin text-purple-400' : ''}`} />
+                </button>
+
                 <button
                   onClick={() => setHideTestAccounts(!hideTestAccounts)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${

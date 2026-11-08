@@ -40,6 +40,7 @@ declare module 'lucide-react' {
   export const Monitor: LucideIcon
   export const MonitorPlay: LucideIcon
   export const Radio: LucideIcon
+  export const RefreshCw: LucideIcon
   export const Search: LucideIcon
   export const Settings: LucideIcon
   export const Shield: LucideIcon
