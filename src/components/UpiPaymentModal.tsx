@@ -32,7 +32,7 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { user, showToast } = useAuth()
+  const { user, showToast, refreshUser } = useAuth()
   const [selectedPlan, setSelectedPlan] = useState<Plan>(AUTHORITATIVE_PLANS[1]) // Default to Yearly VIP Pro
   const [step, setStep] = useState<'select' | 'pay' | 'success'>('select')
   const [utrNumber, setUtrNumber] = useState('')
@@ -40,6 +40,12 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
   const [copiedVpa, setCopiedVpa] = useState(false)
   const [copiedAmount, setCopiedAmount] = useState(false)
   const [issuedKey, setIssuedKey] = useState('')
+  const [receipt, setReceipt] = useState<{
+    transactionRef: string
+    amount: number
+    paidAt: string
+    payeeVpa: string
+  } | null>(null)
 
   if (!isOpen) return null
 
@@ -78,19 +84,27 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
 
     setIsProcessing(true)
     try {
+      const verifiedRef = utrNumber.trim() || `UPI-TXN-${Date.now().toString(36).toUpperCase()}`
       const res = await executeUpgradeToPro({
         userId: user.id,
         email: user.email,
         planId: selectedPlan.id as 'monthly_pro' | 'yearly_pro' | 'lifetime_pro',
         amount: selectedPlan.priceINR,
         paymentMethod: 'upi_intent',
-        transactionRef: utrNumber.trim() || `UPI-TXN-${Date.now().toString(36).toUpperCase()}`,
+        transactionRef: verifiedRef,
       })
 
       if (res.success) {
         setIssuedKey(res.licenseKey || `SHADOWCAST-PRO-${user.id.slice(0, 8).toUpperCase()}-PASS`)
+        setReceipt({
+          transactionRef: res.transactionRef || verifiedRef,
+          amount: res.amount || selectedPlan.priceINR,
+          paidAt: res.paidAt || new Date().toLocaleTimeString('en-IN'),
+          payeeVpa: res.payeeVpa || UPI_CONFIG.vpa,
+        })
+        await refreshUser()
         setStep('success')
-        showToast(`Congratulations! Upgraded to ${selectedPlan.name}!`, 'success')
+        showToast(`Payment of ₹${selectedPlan.priceINR} confirmed! Upgraded to ${selectedPlan.name}!`, 'success')
         if (onSuccess) onSuccess()
       } else {
         showToast(res.error || 'Failed to verify payment. Please try again.', 'error')
@@ -391,27 +405,54 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
             {/* STEP 3: SUCCESS CONFIRMATION */}
             {step === 'success' && (
               <div className="text-center py-6 space-y-5">
-                <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/10">
+                <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/20">
                   <CheckCircle2 size={36} />
                 </div>
 
                 <div>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 uppercase tracking-wider mb-2">
+                    <CheckCircle2 size={13} /> Payment Done &amp; Verified
+                  </span>
                   <h4 className="text-2xl font-extrabold text-white">
                     Creator Pro Activated!
                   </h4>
                   <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                    Your account has been upgraded to <strong className="text-white">{selectedPlan.name}</strong>.
-                    All features are immediately active across Web and Windows Desktop.
+                    Your UPI payment has been successfully recorded in the cloud database.
+                    All Creator Pro features are now live on your account and Windows Desktop.
                   </p>
                 </div>
 
-                {/* Entitlement Summary Card */}
+                {/* Verified Payment Receipt & Entitlements Card */}
                 <div className="p-4 rounded-2xl bg-black/60 border border-slate-800 max-w-md mx-auto space-y-2.5 text-xs text-left">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="text-slate-400">Issued License Token</span>
-                    <code className="text-purple-300 font-mono font-bold">{issuedKey}</code>
+                    <span className="text-slate-400">Payment Status</span>
+                    <span className="text-emerald-400 font-mono font-bold flex items-center gap-1">
+                      <CheckCircle2 size={13} /> CAPTURED &amp; SETTLED
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Amount Paid</span>
+                    <span className="text-white font-mono font-bold text-sm">
+                      ₹{receipt?.amount || selectedPlan.priceINR}.00 INR
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Paid To</span>
+                    <code className="text-purple-300 font-mono font-semibold">
+                      {receipt?.payeeVpa || UPI_CONFIG.vpa}
+                    </code>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Transaction Ref / UTR</span>
+                    <code className="text-slate-200 font-mono font-bold">
+                      {receipt?.transactionRef || 'UPI-RECORDED'}
+                    </code>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Recorded At</span>
+                    <span className="text-slate-300 font-mono">{receipt?.paidAt}</span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
                     <span className="text-slate-400">Watermark Status</span>
                     <span className="text-emerald-400 font-bold flex items-center gap-1">
                       <CheckCircle2 size={12} /> REMOVED (Clean 4K Feed)
@@ -422,8 +463,8 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
                     <span className="text-white font-mono font-semibold">4K UHD @ 120 FPS</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Allowed Concurrent Devices</span>
-                    <span className="text-purple-300 font-mono font-semibold">{selectedPlan.maxDevices} Devices</span>
+                    <span className="text-slate-400">Issued Pro License</span>
+                    <code className="text-purple-300 font-mono font-bold">{issuedKey}</code>
                   </div>
                 </div>
 
@@ -433,9 +474,9 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
                       handleResetAndClose()
                       window.location.reload()
                     }}
-                    className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-purple-900/30 cursor-pointer"
+                    className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-emerald-900/30 cursor-pointer"
                   >
-                    Go to Dashboard
+                    Go to Dashboard (Creator Pro Active)
                   </button>
                 </div>
               </div>

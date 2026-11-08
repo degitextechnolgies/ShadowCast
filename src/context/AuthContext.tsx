@@ -338,6 +338,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  /**
+   * Refresh User from Supabase Profiles
+   */
+  const refreshUser = useCallback(async (): Promise<void> => {
+    if (!user?.id) return
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (profile) {
+        const isPro = Boolean(profile.is_pro)
+        const updatedUser: User = {
+          ...user,
+          isPro,
+          plan: profile.plan || (isPro ? 'Creator Pro' : 'Creator'),
+          connectedDevices: profile.connected_devices ?? user.connectedDevices,
+        }
+        localStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
+        sessionStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
+        setUser(updatedUser)
+      }
+    } catch (err) {
+      console.warn('Failed to refresh user profile:', err)
+    }
+  }, [user])
+
   return (
     <AuthContext.Provider
       value={{
@@ -358,6 +387,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatePassword,
         signOut,
         showToast,
+        refreshUser,
       }}
     >
       {children}

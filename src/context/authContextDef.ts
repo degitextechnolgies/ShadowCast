@@ -36,6 +36,7 @@ export interface AuthContextType {
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>
   signOut: () => Promise<void>
   showToast: (message: string, type?: 'success' | 'info' | 'error') => void
+  refreshUser: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
