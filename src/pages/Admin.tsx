@@ -338,6 +338,7 @@ export const Admin: React.FC = () => {
   const [nodes] = useState<RelayNode[]>(INITIAL_NODES)
   const [isLoggingPaused, setIsLoggingPaused] = useState(false)
   const [hideTestAccounts, setHideTestAccounts] = useState(true)
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Live Supabase Data Fetcher
@@ -568,10 +569,23 @@ export const Admin: React.FC = () => {
     if (!target) return
     const nextTier: 'CREATOR PRO' | 'CREATOR' = target.tier === 'CREATOR PRO' ? 'CREATOR' : 'CREATOR PRO'
     const isPro = nextTier === 'CREATOR PRO'
+    const newLicenseKey = `SHADOWCAST-${isPro ? 'PRO' : 'FREE'}-${target.id.slice(0, 8).toUpperCase()}-PASS`
 
-    // Optimistically update UI
+    setUpdatingUserId(userId)
+
+    // Optimistically update UI immediately with new tier and token
     setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, tier: nextTier, status: 'ACTIVE' } : u))
+      prev.map((u) =>
+        u.id === userId
+          ? {
+              ...u,
+              tier: nextTier,
+              licenseKey: newLicenseKey,
+              activeDevices: isPro ? 2 : 1,
+              status: 'ACTIVE',
+            }
+          : u
+      )
     )
 
     try {
@@ -596,6 +610,7 @@ export const Admin: React.FC = () => {
           .from('licenses')
           .update({
             tier: 'CREATOR PRO',
+            license_key: newLicenseKey,
             max_devices: 5,
             status: 'ACTIVE',
           })
@@ -637,6 +652,7 @@ export const Admin: React.FC = () => {
           .from('licenses')
           .update({
             tier: 'CREATOR',
+            license_key: newLicenseKey,
             max_devices: 1,
             status: 'ACTIVE',
             expires_at: null,
@@ -662,6 +678,8 @@ export const Admin: React.FC = () => {
     } catch (err) {
       console.warn('Failed to persist tier change in Supabase:', err)
       showToast('Failed to update tier. Check connection.', 'error')
+    } finally {
+      setUpdatingUserId(null)
     }
   }
 
@@ -1445,14 +1463,21 @@ export const Admin: React.FC = () => {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleUpgradeTier(u.id)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-colors ${
-                                u.tier === 'CREATOR'
-                                  ? 'bg-red-500/15 hover:bg-red-500/25 text-red-300 border-red-500/30'
-                                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                              disabled={updatingUserId === u.id}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-all ${
+                                updatingUserId === u.id
+                                  ? 'opacity-40 cursor-wait'
+                                  : u.tier === 'CREATOR'
+                                    ? 'bg-red-500/15 hover:bg-red-500/25 text-red-300 border-red-500/30'
+                                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
                               }`}
                               title="Toggle Tier"
                             >
-                              {u.tier === 'CREATOR' ? 'Upgrade to Pro' : 'Downgrade'}
+                              {updatingUserId === u.id
+                                ? 'Saving...'
+                                : u.tier === 'CREATOR'
+                                  ? 'Upgrade to Pro'
+                                  : 'Downgrade'}
                             </button>
                             <button
                               onClick={() => handleToggleUserStatus(u.id)}

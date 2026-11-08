@@ -378,7 +378,9 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
                   <div>
                     <label className="block text-[11px] font-bold text-white mb-1 flex items-center justify-between">
                       <span>UPI Reference / UTR Number (Required)</span>
-                      <span className="text-[10px] text-amber-400 font-normal">Found on PhonePe / GPay receipt</span>
+                      <span className={`text-[10px] font-mono font-semibold ${utrNumber.length === 12 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {utrNumber.length === 12 ? '✓ 12/12 digits ready' : `${utrNumber.length}/12 digits (${12 - utrNumber.length} more)`}
+                      </span>
                     </label>
                     <input
                       type="text"
