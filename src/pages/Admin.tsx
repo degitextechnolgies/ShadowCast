@@ -569,35 +569,39 @@ export const Admin: React.FC = () => {
     const nextTier: 'CREATOR PRO' | 'CREATOR' = target.tier === 'CREATOR PRO' ? 'CREATOR' : 'CREATOR PRO'
     const isPro = nextTier === 'CREATOR PRO'
 
+    // Optimistically update UI
     setUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, tier: nextTier, status: 'ACTIVE' } : u))
     )
-    showToast(`Updated ${target.name} tier to ${nextTier}!`, 'success')
 
     try {
-      await supabase
-        .from('profiles')
-        .update({
-          is_pro: isPro,
-          plan: isPro ? 'Creator Pro' : 'Creator',
-          max_resolution: isPro ? '4K UHD' : '1080p',
-          max_fps: isPro ? 120 : 60,
-          max_devices: isPro ? 5 : 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId)
-
-      await supabase
-        .from('licenses')
-        .update({
-          tier: isPro ? 'CREATOR PRO' : 'CREATOR',
-          max_devices: isPro ? 5 : 1,
-          status: 'ACTIVE',
-        })
-        .eq('user_id', userId)
-
-      // Sync subscriptions table for desktop WPF client
       if (isPro) {
+        // Upgrade using SECURITY DEFINER RPC
+        await supabase.rpc('upgrade_user_to_pro', { target_user_id: userId })
+
+        // Direct profile update
+        await supabase
+          .from('profiles')
+          .update({
+            is_pro: true,
+            plan: 'Creator Pro',
+            max_resolution: '4K UHD',
+            max_fps: 120,
+            max_devices: 5,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId)
+
+        await supabase
+          .from('licenses')
+          .update({
+            tier: 'CREATOR PRO',
+            max_devices: 5,
+            status: 'ACTIVE',
+          })
+          .eq('user_id', userId)
+
+        // Sync subscriptions table for desktop WPF client
         try {
           await supabase.from('subscriptions').insert({
             user_id: userId,
@@ -610,9 +614,54 @@ export const Admin: React.FC = () => {
         } catch {
           // Table pending migration
         }
+
+        showToast(`Successfully upgraded ${target.name} to CREATOR PRO!`, 'success')
+      } else {
+        // Downgrade using SECURITY DEFINER RPC
+        await supabase.rpc('downgrade_user_to_free', { target_user_id: userId })
+
+        // Direct profile update
+        await supabase
+          .from('profiles')
+          .update({
+            is_pro: false,
+            plan: 'Creator',
+            max_resolution: '1080p',
+            max_fps: 60,
+            max_devices: 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId)
+
+        await supabase
+          .from('licenses')
+          .update({
+            tier: 'CREATOR',
+            max_devices: 1,
+            status: 'ACTIVE',
+            expires_at: null,
+          })
+          .eq('user_id', userId)
+
+        // Deactivate active subscriptions for desktop WPF client
+        try {
+          await supabase
+            .from('subscriptions')
+            .update({ status: 'cancelled' })
+            .eq('user_email', target.email.toLowerCase())
+            .eq('status', 'active')
+        } catch {
+          // Table pending migration
+        }
+
+        showToast(`Successfully downgraded ${target.name} to CREATOR!`, 'success')
       }
+
+      // Re-fetch pilots from Supabase so table shows authoritative DB state
+      await loadSupabaseData()
     } catch (err) {
-      console.warn('Failed to persist upgrade in Supabase:', err)
+      console.warn('Failed to persist tier change in Supabase:', err)
+      showToast('Failed to update tier. Check connection.', 'error')
     }
   }
 
