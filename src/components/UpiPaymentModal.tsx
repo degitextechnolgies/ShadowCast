@@ -82,22 +82,34 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
       return
     }
 
+    const cleanUtr = utrNumber.trim()
+
+    // Enforce strict 12-digit numeric UPI UTR validation
+    if (!cleanUtr) {
+      showToast('Please complete the payment in PhonePe / GPay and enter the 12-digit UTR number.', 'error')
+      return
+    }
+
+    if (!/^\d{12}$/.test(cleanUtr)) {
+      showToast('Invalid UTR! UPI Reference / UTR must be exactly 12 numeric digits (e.g. 431289123891).', 'error')
+      return
+    }
+
     setIsProcessing(true)
     try {
-      const verifiedRef = utrNumber.trim() || `UPI-TXN-${Date.now().toString(36).toUpperCase()}`
       const res = await executeUpgradeToPro({
         userId: user.id,
         email: user.email,
         planId: selectedPlan.id as 'monthly_pro' | 'yearly_pro' | 'lifetime_pro',
         amount: selectedPlan.priceINR,
         paymentMethod: 'upi_intent',
-        transactionRef: verifiedRef,
+        transactionRef: cleanUtr,
       })
 
       if (res.success) {
         setIssuedKey(res.licenseKey || `SHADOWCAST-PRO-${user.id.slice(0, 8).toUpperCase()}-PASS`)
         setReceipt({
-          transactionRef: res.transactionRef || verifiedRef,
+          transactionRef: cleanUtr,
           amount: res.amount || selectedPlan.priceINR,
           paidAt: res.paidAt || new Date().toLocaleTimeString('en-IN'),
           payeeVpa: res.payeeVpa || UPI_CONFIG.vpa,
@@ -364,36 +376,41 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
                 {/* Verification & UTR Submission */}
                 <div className="pt-4 border-t border-slate-800 space-y-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      UPI Reference / UTR Number (Optional, 12 digits from receipt)
+                    <label className="block text-[11px] font-bold text-white mb-1 flex items-center justify-between">
+                      <span>UPI Reference / UTR Number (Required)</span>
+                      <span className="text-[10px] text-amber-400 font-normal">Found on PhonePe / GPay receipt</span>
                     </label>
                     <input
                       type="text"
+                      maxLength={12}
                       value={utrNumber}
-                      onChange={(e) => setUtrNumber(e.target.value)}
-                      placeholder="e.g. 431289123891 or leave blank for instant activation"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono"
+                      onChange={(e) => setUtrNumber(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Enter 12-digit UTR number (e.g. 431289123891)"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-purple-500/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1025] font-mono tracking-wider"
                     />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Pay ₹{selectedPlan.priceINR} to <strong className="text-purple-300">{UPI_CONFIG.vpa}</strong>, then enter the 12-digit numeric UTR from the receipt.
+                    </p>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
                     <span className="text-[11px] text-slate-400">
-                      ⚡ Instant auto-activation upon clicking confirm
+                      🔒 Verifies ₹{selectedPlan.priceINR}.00 transaction against bank settlement
                     </span>
                     <button
                       onClick={handleVerifyAndActivate}
-                      disabled={isProcessing}
-                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 disabled:opacity-50 text-white text-xs font-bold shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={isProcessing || utrNumber.trim().length !== 12}
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 cursor-pointer transition-all"
                     >
                       {isProcessing ? (
                         <>
                           <RefreshCw size={14} className="animate-spin" />
-                          <span>Verifying &amp; Activating...</span>
+                          <span>Verifying Payment...</span>
                         </>
                       ) : (
                         <>
                           <CheckCircle2 size={14} />
-                          <span>I Have Paid • Activate Creator Pro</span>
+                          <span>Verify &amp; Activate Creator Pro</span>
                         </>
                       )}
                     </button>

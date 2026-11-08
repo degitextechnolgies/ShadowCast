@@ -152,7 +152,32 @@ export async function executeUpgradeToPro(params: {
 
   const cleanEmail = email.trim().toLowerCase()
   const proKey = `SHADOWCAST-PRO-${Math.random().toString(36).substring(2, 10).toUpperCase()}-PASS`
-  const verifiedRef = transactionRef?.trim() || `UPI-TXN-${Date.now().toString(36).toUpperCase()}`
+  const verifiedRef = transactionRef?.trim()
+
+  if (!verifiedRef || !/^\d{12}$/.test(verifiedRef)) {
+    return {
+      success: false,
+      error: 'A valid 12-digit UPI UTR reference from your payment receipt is strictly required.',
+    }
+  }
+
+  // Check against duplicate UTR claiming
+  try {
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('id, payment_id')
+      .eq('payment_id', verifiedRef)
+      .maybeSingle()
+
+    if (existingPayment) {
+      return {
+        success: false,
+        error: 'This 12-digit UTR has already been claimed! Please complete the ₹1 payment in PhonePe/GPay and enter the unique UTR from your new transaction receipt.',
+      }
+    }
+  } catch {
+    // optional check
+  }
 
   const startsAt = new Date()
   const expiresAt = new Date(startsAt.getTime() + targetPlan.durationDays * 24 * 60 * 60 * 1000)
