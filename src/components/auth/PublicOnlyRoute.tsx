@@ -15,6 +15,16 @@ interface PublicOnlyRouteProps {
 export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) => {
   const { session, user, loading } = useAuth()
 
+  // 1. If OAuth access token or auth code is present in URL hash or search, route directly to /auth/callback
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hash.includes('access_token') ||
+      window.location.hash.includes('refresh_token') ||
+      window.location.search.includes('code='))
+  ) {
+    return <Navigate to={`/auth/callback${window.location.search}${window.location.hash}`} replace />
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#050509] flex flex-col items-center justify-center">

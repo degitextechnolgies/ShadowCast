@@ -167,6 +167,12 @@ test.describe('ShadowCast Authentication Suite', () => {
     await page.waitForURL('**/login')
     await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible()
   })
+
+  test('landing page with OAuth hash automatically forwards to callback and does not leave user stranded', async ({ page }) => {
+    // When Google OAuth returns to root /#access_token=..., forward directly
+    await page.goto('/#access_token=dummy_token&token_type=bearer&expires_in=3600')
+    await page.waitForURL('**/auth/callback#access_token=**')
+  })
 })
 
 
