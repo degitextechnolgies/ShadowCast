@@ -95,7 +95,7 @@ export interface SubscriptionInfo {
 }
 
 export const UPI_CONFIG = {
-  vpa: import.meta.env.VITE_UPI_VPA || 'degitextechnolgies@okaxis',
+  vpa: import.meta.env.VITE_UPI_VPA || 'deekshithch882@ybl',
   merchantName: 'ShadowCast DEGiTEX',
   supportedApps: [
     { id: 'gpay', name: 'Google Pay', scheme: 'tez://upi/pay', color: 'from-blue-500 to-emerald-500' },
