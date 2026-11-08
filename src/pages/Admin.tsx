@@ -16,6 +16,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { adminAuthService } from '../services/adminAuthService'
+import { supabase } from '../lib/supabase'
 
 // --- Lightweight, Type-Safe Pixel-Perfect SVG Icons ---
 
@@ -317,18 +318,6 @@ export const Admin: React.FC = () => {
     latencyMs: 38,
   })
 
-  useEffect(() => {
-    adminAuthService.checkSupabaseHealth().then((res) => {
-      setSupabaseHealth({ connected: res.connected, latencyMs: res.latencyMs })
-    })
-  }, [])
-
-  const handleAdminSignOut = () => {
-    adminAuthService.logoutAdmin()
-    showToast('Admin session terminated. Terminal locked.', 'info')
-    navigate('/login', { replace: true })
-  }
-
   // Navigation tab
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'users' | 'nodes' | 'config' | 'logs'>('overview')
 
@@ -343,6 +332,141 @@ export const Admin: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>(INITIAL_LOGS)
   const [nodes] = useState<RelayNode[]>(INITIAL_NODES)
   const [isLoggingPaused, setIsLoggingPaused] = useState(false)
+
+  // Live Supabase Data Fetcher
+  const loadSupabaseData = async () => {
+    try {
+      // 1. Fetch live registered pilots
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      // 2. Fetch live license tokens
+      const { data: licenses } = await supabase
+        .from('licenses')
+        .select('*')
+
+      if (profiles && profiles.length > 0) {
+        const liveUsers: AdminUser[] = profiles.map((p) => {
+          const userLicense = licenses?.find((l) => l.user_id === p.id)
+
+          let tier: 'ENTERPRISE' | 'PRO ULTRA' | 'CREATOR' | 'FREE' = 'FREE'
+          if (p.is_pro || p.plan?.includes('Pro') || userLicense?.tier === 'PRO ULTRA') {
+            tier = 'PRO ULTRA'
+          } else if (p.plan?.includes('Enterprise') || p.role === 'admin' || userLicense?.tier === 'ENTERPRISE') {
+            tier = 'ENTERPRISE'
+          } else if (p.plan?.includes('Creator') || userLicense?.tier === 'CREATOR') {
+            tier = 'CREATOR'
+          } else {
+            tier = 'FREE'
+          }
+
+          const lastActiveDate = new Date(p.updated_at || p.created_at || Date.now())
+          const diffMinutes = Math.floor((Date.now() - lastActiveDate.getTime()) / (1000 * 60))
+          let lastSeen = 'Just now'
+          if (diffMinutes > 1440) lastSeen = `${Math.floor(diffMinutes / 1440)}d ago`
+          else if (diffMinutes > 60) lastSeen = `${Math.floor(diffMinutes / 60)}h ago`
+          else if (diffMinutes > 1) lastSeen = `${diffMinutes} mins ago`
+
+          return {
+            id: p.id,
+            name: p.name || p.email?.split('@')[0] || 'Shadow Pilot',
+            email: p.email || 'pilot@shadowcast.io',
+            avatar: p.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.id}`,
+            tier,
+            licenseKey: userLicense?.license_key || (p.is_pro ? 'SHADOWCAST-PRO-ACTIVE' : 'SHADOWCAST-FREE-ACTIVE'),
+            activeDevices: p.connected_devices || (p.is_pro ? 2 : 1),
+            status: (userLicense?.status === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE') as 'ACTIVE' | 'SUSPENDED',
+            lastSeen,
+            joinedDate: p.created_at ? p.created_at.split('T')[0] : '2026-02-01',
+          }
+        })
+        setUsers(liveUsers)
+      }
+
+      // 3. Fetch active telemetry stream sessions
+      const { data: liveStreamSessions } = await supabase
+        .from('stream_sessions')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (liveStreamSessions && liveStreamSessions.length > 0) {
+        const mappedSessions: StreamSession[] = liveStreamSessions.map((s) => ({
+          id: s.id,
+          clientName: s.client_name || 'Active Mirror Stream',
+          deviceModel: s.device_model || 'Direct3D Client',
+          clientType: (s.device_model?.toLowerCase().includes('mac') ? 'macos' : s.device_model?.toLowerCase().includes('ios') ? 'ios' : 'android') as 'ios' | 'android' | 'macos' | 'vr',
+          protocol: (s.protocol?.includes('AirPlay') ? 'AirPlay 2' : s.protocol?.includes('USB') ? 'USB 3.2 Gen2' : 'WebRTC') as 'AirPlay 2' | 'USB 3.2 Gen2' | 'Wi-Fi 7 P2P' | 'WebRTC',
+          resolution: s.resolution || '1080p',
+          fps: s.fps || 60,
+          bitrateMbps: Number(s.bitrate_mbps) || 24,
+          latencyMs: Number(s.latency_ms) || 0.8,
+          relayNode: s.relay_node || 'AP-South-1 (Mumbai)',
+          status: 'active',
+          uptime: 'Live',
+          ip: '103.21.244.12',
+        }))
+        setSessions(mappedSessions)
+      }
+
+      // 4. Fetch live audit logs
+      const { data: dbLogs } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(30)
+
+      if (dbLogs && dbLogs.length > 0) {
+        const mappedLogs: LogEntry[] = dbLogs.map((l) => ({
+          id: l.id,
+          timestamp: new Date(l.created_at).toLocaleTimeString(),
+          level: (l.level || 'INFO') as 'INFO' | 'WARN' | 'SECURITY' | 'CRITICAL',
+          category: (l.category || 'AUTH') as 'AUTH' | 'NVENC' | 'AIRPLAY' | 'RELAY' | 'LICENSE',
+          message: l.message,
+        }))
+        setLogs(mappedLogs)
+      }
+    } catch (err) {
+      console.warn('[Admin Live Feed] Sync warning:', err)
+    }
+  }
+
+  useEffect(() => {
+    adminAuthService.checkSupabaseHealth().then((res) => {
+      setSupabaseHealth({ connected: res.connected, latencyMs: res.latencyMs })
+    })
+
+    // Initial load
+    loadSupabaseData()
+
+    // Real-time synchronization whenever pilots login or register
+    const channel = supabase
+      .channel('admin-live-feed')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        loadSupabaseData()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'licenses' }, () => {
+        loadSupabaseData()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stream_sessions' }, () => {
+        loadSupabaseData()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => {
+        loadSupabaseData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  const handleAdminSignOut = () => {
+    adminAuthService.logoutAdmin()
+    showToast('Admin session terminated. Terminal locked.', 'info')
+    navigate('/login', { replace: true })
+  }
 
   // System Configuration Flags
   const [systemConfig, setSystemConfig] = useState({
@@ -383,30 +507,48 @@ export const Admin: React.FC = () => {
     ])
   }
 
-  const handleToggleUserStatus = (userId: string) => {
+  const handleToggleUserStatus = async (userId: string) => {
+    const target = users.find((u) => u.id === userId)
+    if (!target) return
+    const newStatus = target.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE'
+
     setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const newStatus = u.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE'
-          showToast(`User ${u.name} status updated to ${newStatus}`, newStatus === 'ACTIVE' ? 'success' : 'error')
-          return { ...u, status: newStatus }
-        }
-        return u
-      })
+      prev.map((u) => (u.id === userId ? { ...u, status: newStatus } : u))
     )
+    showToast(`User ${target.name} status updated to ${newStatus}`, newStatus === 'ACTIVE' ? 'success' : 'error')
+
+    try {
+      await supabase.from('licenses').update({ status: newStatus }).eq('user_id', userId)
+    } catch (err) {
+      console.warn('Failed to update status in Supabase:', err)
+    }
   }
 
-  const handleUpgradeTier = (userId: string) => {
+  const handleUpgradeTier = async (userId: string) => {
+    const target = users.find((u) => u.id === userId)
+    if (!target) return
+    const nextTier: 'PRO ULTRA' | 'ENTERPRISE' = target.tier === 'PRO ULTRA' ? 'ENTERPRISE' : 'PRO ULTRA'
+
     setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const nextTier = u.tier === 'FREE' ? 'CREATOR' : u.tier === 'CREATOR' ? 'PRO ULTRA' : 'ENTERPRISE'
-          showToast(`Upgraded ${u.name} to ${nextTier}!`, 'success')
-          return { ...u, tier: nextTier, status: 'ACTIVE' }
-        }
-        return u
-      })
+      prev.map((u) => (u.id === userId ? { ...u, tier: nextTier, status: 'ACTIVE' } : u))
     )
+    showToast(`Upgraded ${target.name} to ${nextTier}!`, 'success')
+
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          is_pro: true,
+          plan: nextTier === 'PRO ULTRA' ? 'Pro Ultra (4K)' : 'Enterprise Master',
+          max_resolution: '4K UHD',
+          max_fps: 120,
+          max_devices: 5,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+    } catch (err) {
+      console.warn('Failed to persist upgrade in Supabase:', err)
+    }
   }
 
   const handleCreateUser = (e: React.FormEvent) => {
