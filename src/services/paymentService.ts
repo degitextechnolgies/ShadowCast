@@ -368,6 +368,7 @@ export async function openRazorpayCheckout(params: {
     name: RAZORPAY_CONFIG.merchantName,
     description: `${plan.name} (${plan.durationLabel}) — Ultra 4K 120FPS`,
     image: 'https://shadowcast.in/favicon.svg',
+    remember_customer: false,
     prefill: {
       name: cleanName,
       email: cleanEmail,
