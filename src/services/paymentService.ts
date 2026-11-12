@@ -101,7 +101,7 @@ export interface SubscriptionInfo {
 }
 
 export const RAZORPAY_CONFIG = {
-  keyId: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_ShadowCastDev101',
+  keyId: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_Txlly35GAAF5u6',
   merchantName: 'ShadowCast DEGiTEX',
   currency: 'INR',
   themeColor: '#FF1025',
