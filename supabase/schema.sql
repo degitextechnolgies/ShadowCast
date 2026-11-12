@@ -372,9 +372,9 @@ CREATE TABLE IF NOT EXISTS public.plans (
 INSERT INTO public.plans (id, name, price, duration_days, max_devices, max_fps, max_resolution, watermark)
 VALUES 
   ('free', 'Creator', 0.00, 0, 1, 60, '1080p', true),
-  ('monthly_pro', 'ShadowCast Monthly Pro', 499.00, 30, 2, 120, '4K UHD', false),
-  ('yearly_pro', 'ShadowCast Yearly VIP Pro', 2499.00, 365, 5, 120, '4K UHD', false),
-  ('lifetime_pro', 'ShadowCast Lifetime License', 4999.00, 36500, 10, 120, '4K UHD', false)
+  ('monthly_pro', 'ShadowCast Monthly Pro', 70.00, 30, 2, 120, '4K UHD', false),
+  ('yearly_pro', 'ShadowCast Yearly VIP Pro', 840.00, 365, 5, 120, '4K UHD', false),
+  ('lifetime_pro', 'ShadowCast Lifetime License', 1999.00, 36500, 10, 120, '4K UHD', false)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   price = EXCLUDED.price,

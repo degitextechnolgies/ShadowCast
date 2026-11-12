@@ -66,6 +66,12 @@ declare module 'lucide-react' {
   export default anyIcon
 }
 
+declare global {
+  interface Window {
+    Razorpay: any
+  }
+}
+
 declare module '*.svg' {
   const content: string
   export default content

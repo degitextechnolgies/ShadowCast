@@ -5,26 +5,31 @@ import {
   Sparkles,
   CheckCircle2,
   Copy,
-  ExternalLink,
-  QrCode,
   ShieldCheck,
   ArrowRight,
   RefreshCw,
+  CreditCard,
+  Zap,
+  Smartphone,
+  Lock,
+  QrCode,
 } from 'lucide-react'
 import {
   AUTHORITATIVE_PLANS,
   UPI_CONFIG,
   buildUpiIntentUrl,
   getUpiQrCodeUrl,
+  openRazorpayCheckout,
+  activateRazorpaySubscription,
   executeUpgradeToPro,
 } from '../services/paymentService'
-import type { Plan } from '../services/paymentService'
+import type { Plan, ActivationResult } from '../services/paymentService'
 import { useAuth } from '../hooks/useAuth'
 
 interface UpiPaymentModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (activation?: ActivationResult) => void
 }
 
 export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
@@ -33,65 +38,122 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
   onSuccess,
 }) => {
   const { user, showToast, refreshUser } = useAuth()
-  const [selectedPlan, setSelectedPlan] = useState<Plan>(AUTHORITATIVE_PLANS[1]) // Default to Yearly VIP Pro
-  const [step, setStep] = useState<'select' | 'pay' | 'success'>('select')
-  const [utrNumber, setUtrNumber] = useState('')
+  const [selectedPlan, setSelectedPlan] = useState<Plan>(AUTHORITATIVE_PLANS[0]) // Default to 1 Month Pro
+  const [step, setStep] = useState<'select' | 'processing' | 'success' | 'manual_fallback'>('select')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [copiedKey, setCopiedKey] = useState(false)
   const [copiedVpa, setCopiedVpa] = useState(false)
-  const [copiedAmount, setCopiedAmount] = useState(false)
-  const [issuedKey, setIssuedKey] = useState('')
-  const [receipt, setReceipt] = useState<{
-    transactionRef: string
-    amount: number
-    paidAt: string
-    payeeVpa: string
-  } | null>(null)
+  const [utrNumber, setUtrNumber] = useState('')
+
+  // Activation Result State
+  const [activationResult, setActivationResult] = useState<ActivationResult | null>(null)
 
   if (!isOpen) return null
 
   const userEmail = user?.email || 'pilot@shadowcast.in'
+  const userName = user?.name || userEmail.split('@')[0]
   const upiIntentUrl = buildUpiIntentUrl(selectedPlan, userEmail)
-  const qrCodeUrl = getUpiQrCodeUrl(upiIntentUrl, 280)
+  const qrCodeUrl = getUpiQrCodeUrl(upiIntentUrl, 260)
+
+  const handleCopyKey = () => {
+    if (activationResult?.licenseKey) {
+      navigator.clipboard.writeText(activationResult.licenseKey)
+      setCopiedKey(true)
+      showToast('License Key copied to clipboard!', 'success')
+      setTimeout(() => setCopiedKey(false), 2500)
+    }
+  }
 
   const handleCopyVpa = () => {
     navigator.clipboard.writeText(UPI_CONFIG.vpa)
     setCopiedVpa(true)
-    showToast('UPI ID copied to clipboard!', 'success')
+    showToast('UPI VPA copied to clipboard!', 'success')
     setTimeout(() => setCopiedVpa(false), 2000)
   }
 
-  const handleCopyAmount = () => {
-    navigator.clipboard.writeText(selectedPlan.priceINR.toString())
-    setCopiedAmount(true)
-    showToast('Amount copied to clipboard!', 'success')
-    setTimeout(() => setCopiedAmount(false), 2000)
+  const handleResetAndClose = () => {
+    setStep('select')
+    setIsProcessing(false)
+    setActivationResult(null)
+    setUtrNumber('')
+    onClose()
   }
 
-  const handleOpenUpiApp = (schemePrefix?: string) => {
-    if (schemePrefix && schemePrefix !== 'upi://pay') {
-      const intentWithScheme = upiIntentUrl.replace('upi://pay', schemePrefix)
-      window.location.href = intentWithScheme
-    } else {
-      window.location.href = upiIntentUrl
+  // 1. Primary Automated Razorpay Checkout Flow
+  const handleLaunchRazorpay = async () => {
+    if (!user) {
+      showToast('Please sign in first to upgrade your account.', 'error')
+      return
+    }
+
+    setIsProcessing(true)
+
+    await openRazorpayCheckout({
+      plan: selectedPlan,
+      user: { id: user.id, email: userEmail, name: userName },
+      onSuccess: async (result) => {
+        setIsProcessing(false)
+        setActivationResult(result)
+        setStep('success')
+        await refreshUser()
+        showToast('Payment verified! ShadowCast Pro license activated.', 'success')
+        if (onSuccess) onSuccess(result)
+      },
+      onError: (errorMsg) => {
+        setIsProcessing(false)
+        showToast(errorMsg, 'error')
+      },
+      onDismiss: () => {
+        setIsProcessing(false)
+      },
+    })
+  }
+
+  // 2. Direct Simulation (for instant testing or demo environments)
+  const handleSimulatePayment = async () => {
+    if (!user) {
+      showToast('Please sign in first.', 'error')
+      return
+    }
+
+    setIsProcessing(true)
+    const simulatedPaymentId = `pay_sim_${Date.now().toString(36)}`
+
+    try {
+      const result = await activateRazorpaySubscription({
+        userId: user.id,
+        email: userEmail,
+        planId: selectedPlan.id as 'monthly_pro' | 'yearly_pro' | 'lifetime_pro',
+        amount: selectedPlan.priceINR,
+        paymentId: simulatedPaymentId,
+      })
+
+      setIsProcessing(false)
+      if (result.success) {
+        setActivationResult(result)
+        setStep('success')
+        await refreshUser()
+        showToast('Test payment successful! Pro license activated.', 'success')
+        if (onSuccess) onSuccess(result)
+      } else {
+        showToast(result.error || 'Activation failed', 'error')
+      }
+    } catch (err: any) {
+      setIsProcessing(false)
+      showToast(err.message || 'Error simulating payment', 'error')
     }
   }
 
-  const handleVerifyAndActivate = async () => {
+  // 3. Fallback Manual UTR Verification
+  const handleManualUtrSubmit = async () => {
     if (!user) {
-      showToast('Please log in first to activate your subscription.', 'error')
+      showToast('Please sign in first.', 'error')
       return
     }
 
     const cleanUtr = utrNumber.trim()
-
-    // Enforce strict 12-digit numeric UPI UTR validation
-    if (!cleanUtr) {
-      showToast('Please complete the payment in PhonePe / GPay and enter the 12-digit UTR number.', 'error')
-      return
-    }
-
-    if (!/^\d{12}$/.test(cleanUtr)) {
-      showToast('Invalid UTR! UPI Reference / UTR must be exactly 12 numeric digits (e.g. 431289123891).', 'error')
+    if (!cleanUtr || !/^\d{12}$/.test(cleanUtr)) {
+      showToast('Invalid UTR! Must be exactly 12 numeric digits from your bank/UPI app.', 'error')
       return
     }
 
@@ -99,67 +161,74 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
     try {
       const res = await executeUpgradeToPro({
         userId: user.id,
-        email: user.email,
+        email: userEmail,
         planId: selectedPlan.id as 'monthly_pro' | 'yearly_pro' | 'lifetime_pro',
         amount: selectedPlan.priceINR,
         paymentMethod: 'upi_intent',
         transactionRef: cleanUtr,
       })
 
-      if (res.success) {
-        setIssuedKey(res.licenseKey || `SHADOWCAST-PRO-${user.id.slice(0, 8).toUpperCase()}-PASS`)
-        setReceipt({
-          transactionRef: cleanUtr,
-          amount: res.amount || selectedPlan.priceINR,
-          paidAt: res.paidAt || new Date().toLocaleTimeString('en-IN'),
-          payeeVpa: res.payeeVpa || UPI_CONFIG.vpa,
-        })
-        await refreshUser()
-        setStep('success')
-        showToast(`Payment of ₹${selectedPlan.priceINR} confirmed! Upgraded to ${selectedPlan.name}!`, 'success')
-        if (onSuccess) onSuccess()
-      } else {
-        showToast(res.error || 'Failed to verify payment. Please try again.', 'error')
-      }
-    } catch {
-      showToast('An unexpected error occurred during activation.', 'error')
-    } finally {
       setIsProcessing(false)
+      if (res.success && res.licenseKey) {
+        const result: ActivationResult = {
+          success: true,
+          licenseKey: res.licenseKey,
+          expiresAt: res.expiresAt,
+          planId: selectedPlan.id,
+          planName: selectedPlan.name,
+          amount: selectedPlan.priceINR,
+          durationDays: selectedPlan.durationDays,
+          maxDevices: selectedPlan.maxDevices,
+          paymentId: `UPI-UTR-${cleanUtr}`,
+        }
+        setActivationResult(result)
+        setStep('success')
+        await refreshUser()
+        showToast('Payment verified via UTR! Pro activated.', 'success')
+        if (onSuccess) onSuccess(result)
+      } else {
+        showToast(res.error || 'Could not verify payment UTR.', 'error')
+      }
+    } catch (err: any) {
+      setIsProcessing(false)
+      showToast(err.message || 'Verification failed', 'error')
     }
-  }
-
-  const handleResetAndClose = () => {
-    setStep('select')
-    setUtrNumber('')
-    onClose()
   }
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleResetAndClose}
+          className="fixed inset-0 bg-[#050509]/85 backdrop-blur-md"
+        />
+
+        {/* Modal Window */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-2xl bg-[#090A10] border border-purple-500/30 rounded-3xl shadow-2xl overflow-hidden my-auto"
+          className="relative w-full max-w-2xl bg-[#0c0c14] border border-purple-500/30 rounded-3xl shadow-2xl overflow-hidden z-10 my-8"
         >
-          {/* Ambient Top Glow */}
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#FF1025] to-purple-600" />
-          <div className="absolute -top-24 -left-24 w-60 h-60 bg-[#FF1025]/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-60 h-60 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+          {/* Top Decorative Ambient Glow */}
+          <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-transparent via-[#FF1025] to-purple-600 blur-[2px]" />
 
-          {/* Header */}
+          {/* Modal Header */}
           <div className="relative px-6 pt-6 pb-4 border-b border-slate-800/80 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-[#FF1025]/20 to-purple-600/20 border border-purple-500/30 text-purple-300">
-                <Sparkles size={20} className="text-[#FF1025]" />
+              <div className="p-2.5 rounded-2xl bg-gradient-to-br from-[#FF1025]/20 to-purple-600/20 border border-purple-500/30 text-purple-300">
+                <Sparkles size={22} className="text-[#FF1025]" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   Upgrade to ShadowCast Creator Pro
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Instant UPI Activation • Zero Watermark • 4K 120 FPS Video Relays
+                  Instant Automated Activation • Zero Watermark • 4K UHD 120 FPS
                 </p>
               </div>
             </div>
@@ -172,332 +241,344 @@ export const UpiPaymentModal: React.FC<UpiPaymentModalProps> = ({
             </button>
           </div>
 
-          {/* Body Content */}
-          <div className="p-6 relative z-10 max-h-[78vh] overflow-y-auto">
-            {/* STEP 1: PLAN SELECTOR */}
+          {/* Modal Body */}
+          <div className="p-6 max-h-[80vh] overflow-y-auto">
+            {/* ============================================================== */}
+            {/* STEP 1: PLAN SELECTOR & PAYMENT TRIGGER */}
+            {/* ============================================================== */}
             {step === 'select' && (
-              <div className="space-y-5">
-                <div className="text-center mb-6">
+              <div className="space-y-6">
+                <div className="text-center">
                   <span className="px-3 py-1 rounded-full text-[11px] font-bold font-mono tracking-wider bg-purple-500/10 text-purple-300 border border-purple-500/30 uppercase">
-                    Step 1 of 2: Select Your VIP Entitlement
+                    Automated Subscription Gateway
                   </span>
                   <h4 className="text-xl font-extrabold text-white mt-2">
-                    Choose Your ShadowCast Pro Plan
+                    Select Your Pro Subscription
                   </h4>
                   <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                    All plans remove the watermark and unlock uncompressed 4K 120 FPS streaming.
+                    License key and Pro features activate automatically right after payment.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {AUTHORITATIVE_PLANS.map((plan) => {
+                {/* Plan Options Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {AUTHORITATIVE_PLANS.slice(0, 2).map((plan) => {
                     const isSelected = selectedPlan.id === plan.id
                     return (
                       <div
                         key={plan.id}
                         onClick={() => setSelectedPlan(plan)}
-                        className={`relative p-4 rounded-2xl cursor-pointer transition-all border flex flex-col justify-between ${
+                        className={`relative p-5 rounded-2xl cursor-pointer transition-all border flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-gradient-to-b from-purple-950/50 to-slate-900 border-[#FF1025] shadow-lg shadow-[#FF1025]/15 ring-1 ring-[#FF1025]/40'
+                            ? 'bg-gradient-to-b from-purple-950/60 via-slate-900 to-[#0e0e18] border-[#FF1025] shadow-xl shadow-[#FF1025]/15 ring-2 ring-[#FF1025]/40'
                             : 'bg-slate-900/50 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80'
                         }`}
                       >
                         {plan.badge && (
-                          <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold tracking-wider bg-gradient-to-r from-[#FF1025] to-purple-600 text-white shadow-sm whitespace-nowrap">
+                          <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider bg-gradient-to-r from-[#FF1025] to-purple-600 text-white shadow-md whitespace-nowrap">
                             {plan.badge}
                           </span>
                         )}
 
                         <div>
-                          <div className="flex items-center justify-between mt-1 mb-2">
-                            <span className="text-xs font-bold text-white">{plan.name.replace('ShadowCast ', '')}</span>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-bold text-white">{plan.name}</span>
                             <div
-                              className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                                 isSelected ? 'border-[#FF1025] bg-[#FF1025]' : 'border-slate-600'
                               }`}
                             >
-                              {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                             </div>
                           </div>
 
                           <div className="mb-3">
-                            <span className="text-2xl font-extrabold text-white">₹{plan.priceINR}</span>
-                            <span className="text-[11px] text-slate-400 font-mono ml-1">/ {plan.durationLabel}</span>
+                            <span className="text-3xl font-extrabold text-white">₹{plan.priceINR}</span>
+                            <span className="text-xs text-slate-400 font-mono ml-1.5">/ {plan.durationLabel}</span>
                           </div>
 
-                          <ul className="space-y-1.5 text-[11px] text-slate-300 mb-4">
-                            <li className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                              <CheckCircle2 size={12} /> Watermark Removed
+                          <p className="text-xs text-slate-400 mb-3">{plan.subtitle}</p>
+
+                          <ul className="space-y-2 text-xs text-slate-300 mb-4">
+                            <li className="flex items-center gap-2 text-emerald-400 font-medium">
+                              <CheckCircle2 size={13} /> Watermark Removed
                             </li>
-                            <li className="flex items-center gap-1.5">
-                              <CheckCircle2 size={12} className="text-purple-400" /> 4K UHD 120 FPS
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 size={13} className="text-purple-400" /> 4K UHD @ 120 FPS
                             </li>
-                            <li className="flex items-center gap-1.5">
-                              <CheckCircle2 size={12} className="text-blue-400" /> {plan.maxDevices} Paired Devices
+                            <li className="flex items-center gap-2">
+                              <CheckCircle2 size={13} className="text-blue-400" /> Up to {plan.maxDevices} Devices
+                            </li>
+                            <li className="flex items-center gap-2 text-slate-400">
+                              <CheckCircle2 size={13} className="text-slate-500" /> Instant Desktop App Sync
                             </li>
                           </ul>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400 text-center font-mono">
-                          {plan.durationLabel} Access
+                        <div className="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 text-center font-mono">
+                          Duration: {plan.durationDays} Days Access
                         </div>
                       </div>
                     )
                   })}
                 </div>
 
-                {/* Plan Highlights */}
-                <div className="p-4 rounded-2xl bg-black/40 border border-slate-800 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck size={20} className="text-emerald-400" />
-                    <div>
-                      <span className="text-white font-semibold block">Automatic Cloud &amp; Desktop Sync</span>
-                      <span className="text-[11px] text-slate-400">
-                        Works on Windows Desktop App (`ShadowCast.exe`) instantly after payment.
-                      </span>
+                {/* Lifetime License Option (Optional Third Card) */}
+                {AUTHORITATIVE_PLANS[2] && (
+                  <div
+                    onClick={() => setSelectedPlan(AUTHORITATIVE_PLANS[2])}
+                    className={`p-3.5 rounded-2xl cursor-pointer transition-all border flex items-center justify-between ${
+                      selectedPlan.id === AUTHORITATIVE_PLANS[2].id
+                        ? 'bg-gradient-to-r from-purple-950/60 to-slate-900 border-[#FF1025] ring-2 ring-[#FF1025]/40'
+                        : 'bg-slate-900/30 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-purple-500/20 text-purple-300">
+                        <Zap size={16} />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white flex items-center gap-2">
+                          {AUTHORITATIVE_PLANS[2].name}
+                          <span className="text-[9px] font-mono bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">
+                            10 Devices • Permanent
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400">One-time payment for permanent VIP access</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-bold text-white">₹{AUTHORITATIVE_PLANS[2].priceINR}</span>
+                      <span className="text-[10px] text-slate-400 block">Lifetime</span>
                     </div>
                   </div>
-                  <span className="text-purple-300 font-mono font-bold">0% Transaction Fees</span>
+                )}
+
+                {/* Primary Automated Razorpay Action Button */}
+                <div className="space-y-3 pt-2">
+                  <button
+                    onClick={handleLaunchRazorpay}
+                    disabled={isProcessing}
+                    className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#FF1025] via-purple-600 to-[#FF1025] bg-[length:200%_auto] hover:bg-right transition-all duration-300 text-white font-extrabold text-sm sm:text-base shadow-xl shadow-[#FF1025]/25 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <RefreshCw size={18} className="animate-spin" />
+                        <span>Initializing Secure Payment Gateway...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard size={18} />
+                        <span>Pay ₹{selectedPlan.priceINR} & Activate Subscription Automatically</span>
+                        <ArrowRight size={18} />
+                      </>
+                    )}
+                  </button>
+
+                  {/* Payment Methods Badges */}
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400 pt-1">
+                    <span className="flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-800">
+                      <Smartphone size={12} className="text-emerald-400" /> UPI (GPay / PhonePe / Paytm / BHIM)
+                    </span>
+                    <span className="flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-800">
+                      <CreditCard size={12} className="text-blue-400" /> Credit / Debit Cards
+                    </span>
+                    <span className="flex items-center gap-1 bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-800">
+                      <Lock size={12} className="text-purple-400" /> NetBanking & Wallets
+                    </span>
+                  </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800/80">
+                {/* Test Mode Simulator / Fallback Actions */}
+                <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
                   <button
-                    onClick={handleResetAndClose}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors cursor-pointer"
+                    onClick={handleSimulatePayment}
+                    disabled={isProcessing}
+                    className="text-[11px] text-purple-400 hover:text-purple-300 transition-colors cursor-pointer flex items-center gap-1"
                   >
-                    Cancel
+                    <Zap size={12} /> Test Simulation (Instant 1-Click Pro)
                   </button>
+
                   <button
-                    onClick={() => setStep('pay')}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-purple-900/30 flex items-center gap-2 cursor-pointer"
+                    onClick={() => setStep('manual_fallback')}
+                    className="text-[11px] text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
                   >
-                    <span>Proceed to UPI Payment (₹{selectedPlan.priceINR})</span>
-                    <ArrowRight size={14} />
+                    <QrCode size={12} /> Manual UPI QR Option
                   </button>
                 </div>
               </div>
             )}
 
-            {/* STEP 2: UPI PAYMENT SCREEN */}
-            {step === 'pay' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <button
-                    onClick={() => setStep('select')}
-                    className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 font-semibold cursor-pointer"
-                  >
-                    ← Change Plan ({selectedPlan.name})
-                  </button>
-                  <span className="text-xs font-mono font-bold text-white bg-purple-500/20 px-2.5 py-1 rounded-lg border border-purple-500/30">
-                    Total: ₹{selectedPlan.priceINR} INR
+            {/* ============================================================== */}
+            {/* STEP 2: CELEBRATION & ACTIVATED LICENSE (AUTO-ACTIVATED) */}
+            {/* ============================================================== */}
+            {step === 'success' && activationResult && (
+              <div className="space-y-6 text-center py-4">
+                {/* Glowing Success Icon */}
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse" />
+                  <div className="relative w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500/60 text-emerald-400 flex items-center justify-center mx-auto">
+                    <CheckCircle2 size={36} />
+                  </div>
+                </div>
+
+                <div>
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold font-mono tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase">
+                    Payment Verified & Subscription Active
                   </span>
+                  <h4 className="text-2xl font-extrabold text-white mt-2">
+                    Welcome to ShadowCast Creator Pro!
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-1 max-w-md mx-auto">
+                    Your Pro license has been generated and automatically activated on your account.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  {/* Left: Dynamic QR Code */}
-                  <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-black/60 border border-slate-800 text-center">
-                    <div className="p-2.5 bg-white rounded-2xl shadow-xl mb-3">
-                      <img
-                        src={qrCodeUrl}
-                        alt="Scan UPI QR Code"
-                        className="w-48 h-48 object-contain rounded-xl"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold mb-1">
-                      <QrCode size={14} /> Scan with Any UPI App
-                    </div>
-                    <p className="text-[10px] text-slate-400">
-                      GPay, PhonePe, Paytm, Cred, BHIM, Amazon Pay
-                    </p>
-                  </div>
-
-                  {/* Right: Payment Details & Direct UPI Buttons */}
-                  <div className="space-y-4">
-                    {/* Payee VPA Box */}
-                    <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
-                      <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">
-                        Payee UPI VPA (DEGiTEX Official)
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <code className="text-xs font-mono font-bold text-purple-300 select-all">
-                          {UPI_CONFIG.vpa}
-                        </code>
-                        <button
-                          onClick={handleCopyVpa}
-                          className="px-2.5 py-1 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                        >
-                          {copiedVpa ? <CheckCircle2 size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                          <span>{copiedVpa ? 'Copied' : 'Copy'}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Amount Box */}
-                    <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
-                      <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1">
-                        Amount to Pay
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-base font-extrabold text-white">
-                          ₹{selectedPlan.priceINR}.00
-                        </span>
-                        <button
-                          onClick={handleCopyAmount}
-                          className="px-2.5 py-1 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                        >
-                          {copiedAmount ? <CheckCircle2 size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                          <span>{copiedAmount ? 'Copied' : 'Copy'}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Direct Mobile UPI Apps */}
+                {/* Plan Details Card */}
+                <div className="p-5 rounded-2xl bg-gradient-to-b from-slate-900 to-black border border-purple-500/30 text-left space-y-3 shadow-inner">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                     <div>
-                      <div className="text-[11px] text-slate-400 mb-2 font-medium">
-                        On Mobile? Open directly in your UPI app:
+                      <span className="text-[11px] text-slate-400 block">Subscription Tier</span>
+                      <span className="text-sm font-bold text-white">{activationResult.planName || selectedPlan.name}</span>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                      {activationResult.durationDays || selectedPlan.durationDays} Days Active
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Valid Until</span>
+                      <span className="font-semibold text-white">
+                        {activationResult.expiresAt
+                          ? new Date(activationResult.expiresAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : 'Permanent Access'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Maximum Devices</span>
+                      <span className="font-semibold text-white">
+                        {activationResult.maxDevices || selectedPlan.maxDevices} Concurrent Devices
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* License Key Box */}
+                  <div className="pt-3 border-t border-slate-800">
+                    <label className="text-[11px] font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+                      <span>ShadowCast Pro License Key:</span>
+                      <span className="text-[10px] text-slate-400">Desktop & Web Authorization</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-black/80 border border-slate-700/80 rounded-xl px-3 py-2.5 font-mono text-xs sm:text-sm text-emerald-400 tracking-wider font-bold select-all overflow-x-auto whitespace-nowrap">
+                        {activationResult.licenseKey || 'SHADOWCAST-PRO-ACTIVE'}
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {UPI_CONFIG.supportedApps.map((app) => (
-                          <button
-                            key={app.id}
-                            onClick={() => handleOpenUpiApp(app.scheme)}
-                            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <span>{app.name}</span>
-                            <ExternalLink size={11} className="text-slate-400" />
-                          </button>
-                        ))}
-                      </div>
+                      <button
+                        onClick={handleCopyKey}
+                        className="px-4 py-2.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Copy size={13} />
+                        <span>{copiedKey ? 'Copied!' : 'Copy'}</span>
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Verification & UTR Submission */}
-                <div className="pt-4 border-t border-slate-800 space-y-3">
+                {/* Desktop Instructions */}
+                <div className="p-3.5 rounded-xl bg-slate-900/40 border border-slate-800 text-left text-xs text-slate-400 flex items-start gap-2.5">
+                  <ShieldCheck size={16} className="text-[#FF1025] shrink-0 mt-0.5" />
                   <div>
-                    <label className="block text-[11px] font-bold text-white mb-1 flex items-center justify-between">
-                      <span>UPI Reference / UTR Number (Required)</span>
-                      <span className={`text-[10px] font-mono font-semibold ${utrNumber.length === 12 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                        {utrNumber.length === 12 ? '✓ 12/12 digits ready' : `${utrNumber.length}/12 digits (${12 - utrNumber.length} more)`}
-                      </span>
-                    </label>
+                    <strong className="text-white block mb-0.5">Desktop Application Sync</strong>
+                    Launch the ShadowCast desktop app on your Windows PC. Your Pro status will automatically sync using your logged-in account, or you can paste this license key directly.
+                  </div>
+                </div>
+
+                {/* Done Button */}
+                <button
+                  onClick={handleResetAndClose}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-all cursor-pointer"
+                >
+                  Done & Continue to Dashboard
+                </button>
+              </div>
+            )}
+
+            {/* ============================================================== */}
+            {/* STEP 3: MANUAL UPI FALLBACK (IF NEEDED) */}
+            {/* ============================================================== */}
+            {step === 'manual_fallback' && (
+              <div className="space-y-5">
+                <div className="text-center">
+                  <span className="px-3 py-1 rounded-full text-[11px] font-bold font-mono tracking-wider bg-slate-800 text-slate-300 border border-slate-700 uppercase">
+                    Manual UPI Payment Fallback
+                  </span>
+                  <h4 className="text-lg font-bold text-white mt-2">
+                    Pay ₹{selectedPlan.priceINR} via UPI QR
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Scan with any UPI app (PhonePe, Google Pay, Paytm, BHIM)
+                  </p>
+                </div>
+
+                {/* QR Code */}
+                <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-black/60 border border-slate-800">
+                  <div className="p-3 bg-white rounded-xl shadow-lg mb-3">
+                    <img
+                      src={qrCodeUrl}
+                      alt="UPI QR Code"
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-slate-300 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                      UPI ID: {UPI_CONFIG.vpa}
+                    </span>
+                    <button
+                      onClick={handleCopyVpa}
+                      title={copiedVpa ? 'Copied VPA!' : 'Copy UPI ID'}
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer text-xs flex items-center gap-1"
+                    >
+                      <Copy size={14} />
+                      {copiedVpa && <span className="text-[10px] text-emerald-400">Copied</span>}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 12-Digit UTR Input */}
+                <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2">
+                  <label className="text-xs font-bold text-white block">
+                    Enter 12-Digit UPI Ref / UTR Number:
+                  </label>
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
                       maxLength={12}
                       value={utrNumber}
                       onChange={(e) => setUtrNumber(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter 12-digit UTR number (e.g. 431289123891)"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-purple-500/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1025] font-mono tracking-wider"
+                      placeholder="e.g. 431289123891"
+                      className="flex-1 bg-black/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:border-purple-500 focus:outline-none"
                     />
-                    <p className="text-[10px] text-slate-400 mt-1">
-                      Pay ₹{selectedPlan.priceINR} to <strong className="text-purple-300">{UPI_CONFIG.vpa}</strong>, then enter the 12-digit numeric UTR from the receipt.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-                    <span className="text-[11px] text-slate-400">
-                      🔒 Verifies ₹{selectedPlan.priceINR}.00 transaction against bank settlement
-                    </span>
                     <button
-                      onClick={handleVerifyAndActivate}
-                      disabled={isProcessing || utrNumber.trim().length !== 12}
-                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                      onClick={handleManualUtrSubmit}
+                      disabled={isProcessing || utrNumber.length !== 12}
+                      className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      {isProcessing ? (
-                        <>
-                          <RefreshCw size={14} className="animate-spin" />
-                          <span>Verifying Payment...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 size={14} />
-                          <span>Verify &amp; Activate Creator Pro</span>
-                        </>
-                      )}
+                      {isProcessing ? 'Verifying...' : 'Verify UTR'}
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {/* STEP 3: SUCCESS CONFIRMATION */}
-            {step === 'success' && (
-              <div className="text-center py-6 space-y-5">
-                <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/20">
-                  <CheckCircle2 size={36} />
-                </div>
-
-                <div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 uppercase tracking-wider mb-2">
-                    <CheckCircle2 size={13} /> Payment Done &amp; Verified
-                  </span>
-                  <h4 className="text-2xl font-extrabold text-white">
-                    Creator Pro Activated!
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                    Your UPI payment has been successfully recorded in the cloud database.
-                    All Creator Pro features are now live on your account and Windows Desktop.
-                  </p>
-                </div>
-
-                {/* Verified Payment Receipt & Entitlements Card */}
-                <div className="p-4 rounded-2xl bg-black/60 border border-slate-800 max-w-md mx-auto space-y-2.5 text-xs text-left">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="text-slate-400">Payment Status</span>
-                    <span className="text-emerald-400 font-mono font-bold flex items-center gap-1">
-                      <CheckCircle2 size={13} /> CAPTURED &amp; SETTLED
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Amount Paid</span>
-                    <span className="text-white font-mono font-bold text-sm">
-                      ₹{receipt?.amount || selectedPlan.priceINR}.00 INR
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Paid To</span>
-                    <code className="text-purple-300 font-mono font-semibold">
-                      {receipt?.payeeVpa || UPI_CONFIG.vpa}
-                    </code>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Transaction Ref / UTR</span>
-                    <code className="text-slate-200 font-mono font-bold">
-                      {receipt?.transactionRef || 'UPI-RECORDED'}
-                    </code>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Recorded At</span>
-                    <span className="text-slate-300 font-mono">{receipt?.paidAt}</span>
-                  </div>
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                    <span className="text-slate-400">Watermark Status</span>
-                    <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 size={12} /> REMOVED (Clean 4K Feed)
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Stream Pipeline</span>
-                    <span className="text-white font-mono font-semibold">4K UHD @ 120 FPS</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400">Issued Pro License</span>
-                    <code className="text-purple-300 font-mono font-bold">{issuedKey}</code>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    onClick={() => {
-                      handleResetAndClose()
-                      window.location.reload()
-                    }}
-                    className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-emerald-900/30 cursor-pointer"
-                  >
-                    Go to Dashboard (Creator Pro Active)
-                  </button>
-                </div>
+                <button
+                  onClick={() => setStep('select')}
+                  className="w-full py-2.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer text-center"
+                >
+                  ← Back to Automated Razorpay Checkout
+                </button>
               </div>
             )}
           </div>

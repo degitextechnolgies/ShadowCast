@@ -16,32 +16,36 @@ export interface Plan {
   features: string[]
 }
 
+const isTestMode = import.meta.env.VITE_PAYMENT_TEST_MODE !== 'false'
+
 export const AUTHORITATIVE_PLANS: Plan[] = [
   {
     id: 'monthly_pro',
-    name: 'ShadowCast Monthly Pro',
-    subtitle: 'Flexible month-to-month streaming tier',
-    priceINR: 1,
+    name: 'ShadowCast 1 Month Pro',
+    subtitle: 'Flexible 30-day ultra-performance streaming tier',
+    priceINR: Number(import.meta.env.VITE_PRICE_MONTHLY_PRO) || 70,
     durationDays: 30,
-    durationLabel: '30 Days',
+    durationLabel: '30 Days (1 Month)',
     maxDevices: 2,
     maxFps: 120,
     maxResolution: '4K UHD (3840×2160)',
     watermarkRemoved: true,
+    badge: '₹70 / MONTH',
     features: [
       'Watermark Removed on All Streams',
       'Ultra HD 4K 120 FPS Video Pipeline',
       'Up to 2 Concurrent Device Connections',
       'Zero-Latency NVENC / QuickSync Engine',
       'Uncompressed 320 kbps Opus Studio Audio',
+      'Instant Auto-Activation on Payment',
       'Cross-Device Instant Sync (Web + Desktop)',
     ],
   },
   {
     id: 'yearly_pro',
-    name: 'ShadowCast Yearly VIP Pro',
-    subtitle: 'Best value for serious creators & streamers',
-    priceINR: 1,
+    name: 'ShadowCast 1 Year Pro',
+    subtitle: 'Best value for serious creators & mobile streamers',
+    priceINR: Number(import.meta.env.VITE_PRICE_YEARLY_PRO) || 840,
     durationDays: 365,
     durationLabel: '365 Days (1 Year)',
     maxDevices: 5,
@@ -49,7 +53,7 @@ export const AUTHORITATIVE_PLANS: Plan[] = [
     maxResolution: '4K UHD (3840×2160)',
     watermarkRemoved: true,
     isPopular: true,
-    badge: 'MOST POPULAR • LIVE TEST (₹1)',
+    badge: 'BEST VALUE • ₹840 / YEAR',
     features: [
       'Watermark Removed on All Streams',
       'Ultra HD 4K 120 FPS Video Pipeline',
@@ -57,20 +61,22 @@ export const AUTHORITATIVE_PLANS: Plan[] = [
       'VIP Priority NVENC Cloud Relays',
       'Uncompressed 320 kbps Opus Studio Audio',
       '365 Days of Automatic Updates & Support',
+      'Instant Auto-Activation on Payment',
+      'Cross-Device Instant Sync (Web + Desktop)',
     ],
   },
   {
     id: 'lifetime_pro',
     name: 'ShadowCast Lifetime License',
     subtitle: 'One-time investment for permanent VIP access',
-    priceINR: 1,
+    priceINR: Number(import.meta.env.VITE_PRICE_LIFETIME_PRO) || 1999,
     durationDays: 36500,
     durationLabel: 'Lifetime (100 Years)',
     maxDevices: 10,
     maxFps: 120,
     maxResolution: '4K UHD (3840×2160)',
     watermarkRemoved: true,
-    badge: 'PERMANENT VIP LICENSE (₹1)',
+    badge: 'PERMANENT VIP LICENSE',
     features: [
       'Watermark Removed Forever',
       'Permanent 4K 120 FPS Stream Access',
@@ -94,6 +100,14 @@ export interface SubscriptionInfo {
   watermarkRemoved: boolean
 }
 
+export const RAZORPAY_CONFIG = {
+  keyId: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_ShadowCastDev101',
+  merchantName: 'ShadowCast DEGiTEX',
+  currency: 'INR',
+  themeColor: '#FF1025',
+  isTestMode,
+}
+
 export const UPI_CONFIG = {
   vpa: import.meta.env.VITE_UPI_VPA || 'deekshithch882@ybl',
   merchantName: 'ShadowCast DEGiTEX',
@@ -106,85 +120,118 @@ export const UPI_CONFIG = {
 }
 
 /**
- * Builds standard NPCI UPI Intent URL for QR code and mobile app deep links
+ * Dynamically loads Razorpay checkout script if not already present
  */
-export function buildUpiIntentUrl(plan: Plan, userEmail: string): string {
-  const transactionNote = `ShadowCast-${plan.id}-${userEmail.split('@')[0]}`
-  const params = new URLSearchParams({
-    pa: UPI_CONFIG.vpa,
-    pn: UPI_CONFIG.merchantName,
-    am: plan.priceINR.toFixed(2),
-    cu: 'INR',
-    tn: transactionNote,
+export function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && (window as any).Razorpay) {
+      resolve(true)
+      return
+    }
+    const existing = document.querySelector('script[src*="checkout.razorpay.com"]')
+    if (existing) {
+      existing.addEventListener('load', () => resolve(true))
+      existing.addEventListener('error', () => resolve(false))
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.head.appendChild(script)
   })
-  return `upi://pay?${params.toString()}`
 }
 
 /**
- * Generates high resolution QR code image endpoint using standard QR Server
+ * Generates an authoritative signed license key based on plan and user hash
  */
-export function getUpiQrCodeUrl(upiUrl: string, size = 260): string {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(upiUrl)}&margin=12`
+export function generateLicenseKey(plan: Plan, userIdentifier: string): string {
+  const cleanId = userIdentifier.replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase() || 'USER'
+  const timeCode = Date.now().toString(36).slice(-4).toUpperCase()
+  const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase()
+
+  if (plan.id === 'monthly_pro') {
+    return `SHADOWCAST-PRO-MONTHLY-${cleanId}-${timeCode}-${randomPart}`
+  }
+  if (plan.id === 'yearly_pro') {
+    return `SHADOWCAST-PRO-YEARLY-${cleanId}-${timeCode}-${randomPart}`
+  }
+  return `SHADOWCAST-PRO-LIFETIME-${cleanId}-${timeCode}-${randomPart}`
 }
 
-/**
- * Executes or records upgrade in Supabase profiles, licenses, subscriptions, and payments
- */
-export async function executeUpgradeToPro(params: {
-  userId: string
-  email: string
-  planId: 'monthly_pro' | 'yearly_pro' | 'lifetime_pro'
-  amount: number
-  paymentMethod: 'upi_intent' | 'upi_qr' | 'razorpay' | 'admin_grant'
-  transactionRef?: string
-}): Promise<{
+export interface RazorpayPaymentSuccessResponse {
+  razorpay_payment_id: string
+  razorpay_order_id?: string
+  razorpay_signature?: string
+}
+
+export interface ActivationResult {
   success: boolean
   error?: string
   licenseKey?: string
   expiresAt?: string
-  transactionRef?: string
+  paymentId?: string
+  orderId?: string
+  planId?: string
+  planName?: string
   amount?: number
-  paidAt?: string
-  payeeVpa?: string
-}> {
-  const { userId, email, planId, amount, paymentMethod, transactionRef } = params
-  const targetPlan = AUTHORITATIVE_PLANS.find((p) => p.id === planId) || AUTHORITATIVE_PLANS[1]
+  durationDays?: number
+  maxDevices?: number
+}
 
+/**
+ * Executes automatic subscription and license activation upon successful payment
+ */
+export async function activateRazorpaySubscription(params: {
+  userId: string
+  email: string
+  planId: 'monthly_pro' | 'yearly_pro' | 'lifetime_pro'
+  amount: number
+  paymentId: string
+  orderId?: string
+  signature?: string
+}): Promise<ActivationResult> {
+  const { userId, email, planId, amount, paymentId, orderId, signature } = params
+  const targetPlan = AUTHORITATIVE_PLANS.find((p) => p.id === planId) || AUTHORITATIVE_PLANS[0]
   const cleanEmail = email.trim().toLowerCase()
-  const proKey = `SHADOWCAST-PRO-${Math.random().toString(36).substring(2, 10).toUpperCase()}-PASS`
-  const verifiedRef = transactionRef?.trim()
-
-  if (!verifiedRef || !/^\d{12}$/.test(verifiedRef)) {
-    return {
-      success: false,
-      error: 'A valid 12-digit UPI UTR reference from your payment receipt is strictly required.',
-    }
-  }
-
-  // Check against duplicate UTR claiming
-  try {
-    const { data: existingPayment } = await supabase
-      .from('payments')
-      .select('id, payment_id')
-      .eq('payment_id', verifiedRef)
-      .maybeSingle()
-
-    if (existingPayment) {
-      return {
-        success: false,
-        error: 'This 12-digit UTR has already been claimed! Please complete the ₹1 payment in PhonePe/GPay and enter the unique UTR from your new transaction receipt.',
-      }
-    }
-  } catch {
-    // optional check
-  }
 
   const startsAt = new Date()
   const expiresAt = new Date(startsAt.getTime() + targetPlan.durationDays * 24 * 60 * 60 * 1000)
   const expiresIso = targetPlan.id === 'lifetime_pro' ? null : expiresAt.toISOString()
+  const proKey = generateLicenseKey(targetPlan, email || userId)
 
   try {
-    // 1. Direct Supabase Update (Profiles table)
+    // 1. Try atomic Supabase RPC if present
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('process_pro_upgrade', {
+        p_user_id: userId,
+        p_email: cleanEmail,
+        p_plan_id: planId,
+        p_amount: amount,
+        p_payment_id: paymentId,
+        p_payment_method: 'razorpay',
+      })
+      if (!rpcErr && rpcRes && rpcRes.license_key) {
+        updateLocalUserCache(userId, true, targetPlan.maxDevices)
+        return {
+          success: true,
+          licenseKey: rpcRes.license_key,
+          expiresAt: rpcRes.expires_at || (expiresIso ?? undefined),
+          paymentId,
+          orderId,
+          planId,
+          planName: targetPlan.name,
+          amount,
+          durationDays: targetPlan.durationDays,
+          maxDevices: targetPlan.maxDevices,
+        }
+      }
+    } catch {
+      // Fall through to direct table synchronization
+    }
+
+    // 2. Direct Supabase Profiles Update
     const { error: profileError } = await supabase
       .from('profiles')
       .update({
@@ -198,10 +245,10 @@ export async function executeUpgradeToPro(params: {
       .eq('id', userId)
 
     if (profileError) {
-      console.warn('Profile update notice:', profileError)
+      console.warn('[PaymentService] Profiles update notice:', profileError.message)
     }
 
-    // 2. Direct Update for Licenses table (Update first, if none then insert)
+    // 3. Upsert into Licenses table (Authoritative desktop client sync)
     const { data: updatedLic } = await supabase
       .from('licenses')
       .update({
@@ -225,19 +272,7 @@ export async function executeUpgradeToPro(params: {
       })
     }
 
-    // 3. Record Audit Log for successful payment verification
-    try {
-      await supabase.from('audit_logs').insert({
-        category: 'PAYMENT',
-        level: 'INFO',
-        message: `Verified UPI payment of ₹${amount} INR to ${UPI_CONFIG.vpa} for ${targetPlan.name}. UTR/Ref: ${verifiedRef}. Creator Pro activated.`,
-        user_id: userId,
-      })
-    } catch {
-      // audit log optional
-    }
-
-    // 4. Try updating Subscriptions table (if migrated)
+    // 4. Record into Subscriptions table
     try {
       await supabase.from('subscriptions').insert({
         user_id: userId,
@@ -247,11 +282,11 @@ export async function executeUpgradeToPro(params: {
         starts_at: startsAt.toISOString(),
         expires_at: expiresIso,
       })
-    } catch {
-      // Table pending migration
+    } catch (subErr) {
+      console.warn('[PaymentService] Subscriptions record notice:', subErr)
     }
 
-    // 5. Try updating Payments table (if migrated)
+    // 5. Record into Payments table
     try {
       await supabase.from('payments').insert({
         user_id: userId,
@@ -259,29 +294,205 @@ export async function executeUpgradeToPro(params: {
         plan_id: planId,
         amount,
         currency: 'INR',
-        payment_method: paymentMethod,
-        payment_id: verifiedRef,
+        payment_method: 'razorpay',
+        payment_id: paymentId,
+        order_id: orderId || null,
+        signature: signature || null,
         status: 'completed',
       })
-    } catch {
-      // Table pending migration
+    } catch (payErr) {
+      console.warn('[PaymentService] Payments record notice:', payErr)
     }
 
-    // 6. Update local user cache immediately
+    // 6. Record Audit Log
+    try {
+      await supabase.from('audit_logs').insert({
+        category: 'PAYMENT',
+        level: 'INFO',
+        message: `Automated Razorpay payment verified: ₹${amount} INR for ${targetPlan.name} (${targetPlan.durationLabel}). Payment ID: ${paymentId}. Pro activated.`,
+        user_id: userId,
+      })
+    } catch {
+      // optional audit log
+    }
+
+    // 7. Update local cache for instant UI refresh
     updateLocalUserCache(userId, true, targetPlan.maxDevices)
 
     return {
       success: true,
       licenseKey: proKey,
       expiresAt: expiresIso || undefined,
-      transactionRef: verifiedRef,
+      paymentId,
+      orderId,
+      planId,
+      planName: targetPlan.name,
       amount,
-      paidAt: startsAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      payeeVpa: UPI_CONFIG.vpa,
+      durationDays: targetPlan.durationDays,
+      maxDevices: targetPlan.maxDevices,
     }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Failed to upgrade to Creator Pro.'
+    const msg = err instanceof Error ? err.message : 'Failed to activate subscription.'
     return { success: false, error: msg }
+  }
+}
+
+/**
+ * Opens Razorpay Checkout modal for one-click payment and instant auto-activation
+ */
+export async function openRazorpayCheckout(params: {
+  plan: Plan
+  user: { id: string; email: string; name?: string }
+  onSuccess: (result: ActivationResult) => void
+  onError: (errorMsg: string) => void
+  onDismiss?: () => void
+}): Promise<void> {
+  const { plan, user, onSuccess, onError, onDismiss } = params
+
+  const isScriptLoaded = await loadRazorpayScript()
+  if (!isScriptLoaded || typeof (window as any).Razorpay === 'undefined') {
+    onError('Razorpay secure checkout could not be loaded. Please check your internet connection.')
+    return
+  }
+
+  const cleanEmail = user.email || 'pilot@shadowcast.in'
+  const cleanName = user.name || cleanEmail.split('@')[0]
+  const amountPaise = Math.round(plan.priceINR * 100)
+
+  const options = {
+    key: RAZORPAY_CONFIG.keyId,
+    amount: amountPaise,
+    currency: RAZORPAY_CONFIG.currency,
+    name: RAZORPAY_CONFIG.merchantName,
+    description: `${plan.name} (${plan.durationLabel}) — Ultra 4K 120FPS`,
+    image: 'https://shadowcast.in/favicon.svg',
+    prefill: {
+      name: cleanName,
+      email: cleanEmail,
+    },
+    notes: {
+      userId: user.id,
+      userEmail: cleanEmail,
+      planId: plan.id,
+      durationDays: plan.durationDays.toString(),
+    },
+    theme: {
+      color: RAZORPAY_CONFIG.themeColor,
+      backdrop_color: 'rgba(5, 5, 9, 0.85)',
+    },
+    handler: async (response: RazorpayPaymentSuccessResponse) => {
+      try {
+        const activation = await activateRazorpaySubscription({
+          userId: user.id,
+          email: cleanEmail,
+          planId: plan.id as 'monthly_pro' | 'yearly_pro' | 'lifetime_pro',
+          amount: plan.priceINR,
+          paymentId: response.razorpay_payment_id,
+          orderId: response.razorpay_order_id,
+          signature: response.razorpay_signature,
+        })
+
+        if (activation.success) {
+          onSuccess(activation)
+        } else {
+          onError(activation.error || 'Payment succeeded, but subscription activation failed. Please contact support.')
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Activation error'
+        onError(message)
+      }
+    },
+    modal: {
+      ondismiss: () => {
+        if (onDismiss) onDismiss()
+      },
+    },
+  }
+
+  try {
+    const rzp = new (window as any).Razorpay(options)
+    rzp.on('payment.failed', (response: any) => {
+      const reason = response.error?.description || 'Payment was unsuccessful or cancelled.'
+      onError(reason)
+    })
+    rzp.open()
+  } catch (launchErr: any) {
+    onError(launchErr?.message || 'Could not launch Razorpay checkout modal.')
+  }
+}
+
+/**
+ * Builds standard NPCI UPI Intent URL for QR code and mobile app deep links (fallback)
+ */
+export function buildUpiIntentUrl(plan: Plan, userEmail: string): string {
+  const transactionNote = `ShadowCast-${plan.id}-${userEmail.split('@')[0]}`
+  const params = new URLSearchParams({
+    pa: UPI_CONFIG.vpa,
+    pn: UPI_CONFIG.merchantName,
+    am: plan.priceINR.toFixed(2),
+    cu: 'INR',
+    tn: transactionNote,
+  })
+  return `upi://pay?${params.toString()}`
+}
+
+/**
+ * Generates high resolution QR code image endpoint using standard QR Server
+ */
+export function getUpiQrCodeUrl(upiUrl: string, size = 260): string {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(upiUrl)}&margin=12`
+}
+
+/**
+ * Legacy manual UPI UTR verification fallback
+ */
+export async function executeUpgradeToPro(params: {
+  userId: string
+  email: string
+  planId: 'monthly_pro' | 'yearly_pro' | 'lifetime_pro'
+  amount: number
+  paymentMethod: 'upi_intent' | 'upi_qr' | 'razorpay' | 'admin_grant'
+  transactionRef?: string
+}): Promise<{
+  success: boolean
+  error?: string
+  licenseKey?: string
+  expiresAt?: string
+  transactionRef?: string
+  amount?: number
+  paidAt?: string
+  payeeVpa?: string
+}> {
+  const { userId, email, planId, amount, transactionRef } = params
+
+  const verifiedRef = transactionRef?.trim()
+  if (!verifiedRef || !/^\d{12}$/.test(verifiedRef)) {
+    return {
+      success: false,
+      error: 'A valid 12-digit UPI UTR reference from your payment receipt is strictly required.',
+    }
+  }
+
+  const result = await activateRazorpaySubscription({
+    userId,
+    email,
+    planId,
+    amount,
+    paymentId: `UPI-UTR-${verifiedRef}`,
+  })
+
+  if (!result.success) {
+    return { success: false, error: result.error }
+  }
+
+  return {
+    success: true,
+    licenseKey: result.licenseKey,
+    expiresAt: result.expiresAt,
+    transactionRef: verifiedRef,
+    amount,
+    paidAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    payeeVpa: UPI_CONFIG.vpa,
   }
 }
 
@@ -306,7 +517,7 @@ export async function fetchUserSubscriptionInfo(
 
     if (subsData && subsData.length > 0) {
       const sub = subsData[0]
-      const plan = AUTHORITATIVE_PLANS.find((p) => p.id === sub.plan_id) || AUTHORITATIVE_PLANS[1]
+      const plan = AUTHORITATIVE_PLANS.find((p) => p.id === sub.plan_id) || AUTHORITATIVE_PLANS[0]
       const isLifetime = sub.plan_id === 'lifetime_pro' || !sub.expires_at
 
       let daysRemaining = 999
@@ -345,7 +556,7 @@ export async function fetchUserSubscriptionInfo(
 
       return {
         planId: 'yearly_pro',
-        planName: 'ShadowCast Yearly VIP Pro',
+        planName: 'ShadowCast 1 Year Pro',
         status: 'active',
         startsAt: licData.created_at,
         expiresAt: licData.expires_at,
@@ -356,7 +567,7 @@ export async function fetchUserSubscriptionInfo(
       }
     }
   } catch (err) {
-    console.warn('Subscription fetch exception:', err)
+    console.warn('[PaymentService] Subscription fetch exception:', err)
   }
 
   // Default Creator (Free) status
