@@ -278,6 +278,8 @@ export async function activateRazorpaySubscription(params: {
         user_id: userId,
         user_email: cleanEmail,
         plan_id: planId,
+        license_key: proKey,
+        max_devices: targetPlan.maxDevices,
         status: 'active',
         starts_at: startsAt.toISOString(),
         expires_at: expiresIso,

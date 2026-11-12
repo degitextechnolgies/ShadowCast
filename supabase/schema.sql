@@ -389,11 +389,16 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   user_email TEXT NOT NULL,
   plan_id TEXT NOT NULL REFERENCES public.plans(id) ON DELETE RESTRICT,
+  license_key TEXT,
+  max_devices INT DEFAULT 2,
   status TEXT NOT NULL DEFAULT 'active',
   starts_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS license_key TEXT;
+ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS max_devices INT DEFAULT 2;
 
 CREATE INDEX IF NOT EXISTS idx_subs_user_email_status ON public.subscriptions(user_email, status);
 
@@ -477,8 +482,8 @@ BEGIN
     max_devices = v_max_devices,
     expires_at = v_expires_at;
 
-  INSERT INTO public.subscriptions (user_id, user_email, plan_id, status, starts_at, expires_at)
-  VALUES (p_user_id, LOWER(p_email), p_plan_id, 'active', NOW(), v_expires_at);
+  INSERT INTO public.subscriptions (user_id, user_email, plan_id, license_key, max_devices, status, starts_at, expires_at)
+  VALUES (p_user_id, LOWER(p_email), p_plan_id, v_pro_key, v_max_devices, 'active', NOW(), v_expires_at);
 
   INSERT INTO public.payments (user_id, user_email, plan_id, amount, payment_method, payment_id, status)
   VALUES (p_user_id, LOWER(p_email), p_plan_id, p_amount, p_payment_method, p_payment_id, 'completed');

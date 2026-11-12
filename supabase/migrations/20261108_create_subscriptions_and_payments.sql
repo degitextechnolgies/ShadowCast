@@ -36,11 +36,16 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   user_email TEXT NOT NULL,
   plan_id TEXT NOT NULL REFERENCES public.plans(id) ON DELETE RESTRICT,
+  license_key TEXT,
+  max_devices INT DEFAULT 2,
   status TEXT NOT NULL DEFAULT 'active',
   starts_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS license_key TEXT;
+ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS max_devices INT DEFAULT 2;
 
 CREATE INDEX IF NOT EXISTS idx_subs_user_email_status ON public.subscriptions(user_email, status);
 
