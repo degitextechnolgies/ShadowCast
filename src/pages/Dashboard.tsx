@@ -25,7 +25,7 @@ import type { SubscriptionInfo } from '../services/paymentService'
 const CURRENT_YEAR = new Date().getFullYear()
 
 export const Dashboard: React.FC = () => {
-  const { user, signOut, showToast } = useAuth()
+  const { user, signOut, showToast, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [copiedKey, setCopiedKey] = useState(false)
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
@@ -35,18 +35,28 @@ export const Dashboard: React.FC = () => {
     if (user) {
       fetchUserSubscriptionInfo(user.id, user.email).then((sub) => {
         setSubscription(sub)
+        if (sub.status === 'active' && !user.isPro) {
+          refreshUser()
+        }
       })
     }
-  }, [user])
+  }, [user, refreshUser])
+
+  const isProUser = Boolean(
+    user?.isPro ||
+    subscription?.status === 'active' ||
+    subscription?.isLifetime ||
+    (subscription && subscription.planId !== 'free' && subscription.daysRemaining > 0)
+  )
 
   const licenseToken = user
-    ? `SHADOWCAST-${user.isPro ? 'PRO' : 'FREE'}-${user.id.slice(0, 8).toUpperCase()}-PASS`
+    ? `SHADOWCAST-${isProUser ? 'PRO' : 'FREE'}-${user.id.slice(0, 8).toUpperCase()}-PASS`
     : 'SHADOWCAST-KEY'
 
   const handleCopyKey = () => {
     navigator.clipboard.writeText(licenseToken)
     setCopiedKey(true)
-    showToast(`${user?.isPro ? 'Pro' : 'Free'} License Key copied to clipboard!`, 'success')
+    showToast(`${isProUser ? 'Pro' : 'Free'} License Key copied to clipboard!`, 'success')
     setTimeout(() => setCopiedKey(false), 2000)
   }
 
@@ -151,13 +161,20 @@ export const Dashboard: React.FC = () => {
                     {user?.name || 'ShadowCast Pilot'}
                   </h1>
                   <span
-                    className={`px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider border ${
-                      user?.isPro
-                        ? 'bg-[#FF1025]/20 text-red-300 border-[#FF1025]/30'
+                    className={`px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider border flex items-center gap-1.5 ${
+                      isProUser
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/20'
                         : 'bg-slate-800/80 text-slate-300 border-slate-700/80'
                     }`}
                   >
-                    {user?.plan || (user?.isPro ? 'Creator Pro' : 'Creator')}
+                    {isProUser ? (
+                      <>
+                        <Sparkles size={11} className="text-emerald-400" />
+                        <span>PRO VERSION ACTIVE</span>
+                      </>
+                    ) : (
+                      <span>CREATOR TIER</span>
+                    )}
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-400 mt-1">{user?.email}</p>
@@ -174,8 +191,10 @@ export const Dashboard: React.FC = () => {
             {/* Desktop App Pairing Token */}
             <div className="w-full sm:w-auto p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-inner">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>ShadowCast App {user?.isPro ? 'Creator Pro' : 'Creator'} Key</span>
-                <span className="text-emerald-400 text-[10px]">Verified {user?.isPro ? 'Creator Pro' : 'Creator'}</span>
+                <span>ShadowCast App {isProUser ? 'Creator Pro' : 'Creator'} Key</span>
+                <span className="text-emerald-400 text-[10px] font-mono flex items-center gap-1">
+                  <CheckCircle2 size={11} /> {isProUser ? 'Verified Pro Active' : 'Free Tier'}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <code className="px-3 py-1.5 rounded-lg bg-black/60 font-mono text-xs text-purple-300 font-bold border border-purple-500/30">
@@ -196,9 +215,9 @@ export const Dashboard: React.FC = () => {
                   )}
                 </button>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1.5">
-                {user?.isPro
-                  ? 'Active Creator Pro entitlement. Unlocks watermark-free 4K 120Hz streams & 5 device connections.'
+              <p className="text-[10px] text-slate-400 mt-1.5">
+                {isProUser
+                  ? 'Active Creator Pro License: Unlocked watermark-free 4K 120Hz streams & up to 5 device connections.'
                   : 'Creator tier. Upgrade to Creator Pro anytime to unlock 4K 120Hz and 5 concurrent devices.'}
               </p>
             </div>
@@ -206,37 +225,47 @@ export const Dashboard: React.FC = () => {
         </motion.div>
 
         {/* Pro Status or Upgrade Banner */}
-        {user?.isPro ? (
+        {isProUser ? (
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900/80 to-[#121218] border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl"
+            className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-[#0d1f17] to-slate-900/90 border border-emerald-500/40 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-2xl relative overflow-hidden"
           >
-            <div className="flex items-center gap-3.5">
-              <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30">
-                <ShieldCheck size={22} />
+            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-start sm:items-center gap-4 relative z-10">
+              <div className="p-3.5 rounded-2xl bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-950/50">
+                <ShieldCheck size={28} />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  ShadowCast Creator Pro Active
-                  <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h2 className="text-lg font-extrabold text-white tracking-tight">
+                    You are using ShadowCast Pro Version
+                  </h2>
+                  <span className="text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/40 flex items-center gap-1">
+                    <Sparkles size={11} className="text-emerald-400" /> PRO ACTIVE
+                  </span>
+                  <span className="text-[11px] font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">
                     WATERMARK REMOVED
                   </span>
-                </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
+                  <span className="text-[11px] font-mono bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
+                    4K 120FPS UNLOCKED
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1.5">
                   {subscription?.isLifetime
-                    ? 'Permanent Lifetime License active • Zero monthly renewals needed.'
-                    : `Active subscription • ${subscription?.daysRemaining || 365} days remaining • 4K UHD 120 FPS unlocked.`}
+                    ? 'Permanent Lifetime License active • Zero recurring renewals • Up to 10 concurrent devices.'
+                    : `Active Pro Subscription • ${subscription?.daysRemaining ?? 365} days remaining • Full VIP hardware acceleration enabled.`}
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setIsUpgradeModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs whitespace-nowrap border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <CreditCard size={13} />
-              <span>Extend / Change Plan</span>
-            </button>
+
+            <div className="flex items-center gap-3 self-start md:self-auto relative z-10">
+              <div className="px-4 py-2 rounded-xl bg-black/50 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                <CheckCircle2 size={16} className="text-emerald-400" />
+                <span>Pro Plan Verified</span>
+              </div>
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -348,14 +377,24 @@ export const Dashboard: React.FC = () => {
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
                 <span className="text-slate-400">Stream Resolution</span>
-                <span className="text-white font-mono font-semibold">
-                  {user?.isPro ? '3840 × 2160 (4K UHD)' : '1920 × 1080 (FHD Cap)'}
+                <span className="text-white font-mono font-semibold flex items-center gap-1.5">
+                  {isProUser ? '3840 × 2160 (4K UHD)' : '1920 × 1080 (FHD Cap)'}
+                  {isProUser && (
+                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 font-bold">
+                      PRO ACTIVE
+                    </span>
+                  )}
                 </span>
               </div>
               <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-slate-800">
                 <span className="text-slate-400">Audio Pipeline</span>
-                <span className="text-emerald-400 font-mono font-semibold">
-                  {user?.isPro ? '320 kbps Opus Studio' : '160 kbps Stereo'}
+                <span className="text-emerald-400 font-mono font-semibold flex items-center gap-1.5">
+                  {isProUser ? '320 kbps Opus Studio' : '160 kbps Stereo'}
+                  {isProUser && (
+                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 font-bold">
+                      LOSSLESS
+                    </span>
+                  )}
                 </span>
               </div>
             </div>

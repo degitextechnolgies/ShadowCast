@@ -5,6 +5,69 @@ import { supabase } from '../lib/supabase'
 import { authService } from '../services/authService'
 import { adminAuthService, isSuperAdminEmail, PRIMARY_ADMIN_EMAIL } from '../services/adminAuthService'
 
+async function checkUserIsPro(
+  userId: string,
+  email: string
+): Promise<{ isPro: boolean; plan: string; maxDevices: number }> {
+  const cleanEmail = email.trim().toLowerCase()
+  const cachedProFlag = typeof localStorage !== 'undefined' && localStorage.getItem(`shadowcast_pro_${userId}`) === 'true'
+
+  try {
+    // 1. Check subscriptions table (authoritative)
+    const { data: subData } = await supabase
+      .from('subscriptions')
+      .select('status, plan_id, expires_at')
+      .or(`user_id.eq.${userId},user_email.eq.${cleanEmail}`)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (subData && subData.length > 0) {
+      const sub = subData[0]
+      const isExpired = sub.expires_at && new Date(sub.expires_at).getTime() < Date.now()
+      if (!isExpired) {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(`shadowcast_pro_${userId}`, 'true')
+        return { isPro: true, plan: 'Creator Pro', maxDevices: 5 }
+      }
+    }
+
+    // 2. Check licenses table
+    const { data: licData } = await supabase
+      .from('licenses')
+      .select('tier, status, expires_at')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (licData && (licData.tier === 'CREATOR PRO' || licData.tier === 'PRO') && licData.status === 'ACTIVE') {
+      const isExpired = licData.expires_at && new Date(licData.expires_at).getTime() < Date.now()
+      if (!isExpired) {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(`shadowcast_pro_${userId}`, 'true')
+        return { isPro: true, plan: 'Creator Pro', maxDevices: 5 }
+      }
+    }
+
+    // 3. Check profiles table
+    const { data: profData } = await supabase
+      .from('profiles')
+      .select('is_pro, plan, max_devices')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (profData && Boolean(profData.is_pro)) {
+      if (typeof localStorage !== 'undefined') localStorage.setItem(`shadowcast_pro_${userId}`, 'true')
+      return { isPro: true, plan: profData.plan || 'Creator Pro', maxDevices: profData.max_devices || 5 }
+    }
+  } catch (err) {
+    console.warn('[AuthContext] Pro check exception:', err)
+  }
+
+  if (cachedProFlag) {
+    return { isPro: true, plan: 'Creator Pro', maxDevices: 5 }
+  }
+
+  return { isPro: false, plan: 'Creator', maxDevices: 1 }
+}
+
 function mapSupabaseUser(sbUser: SupabaseUser): User {
   const meta = sbUser.user_metadata || {}
   const rawName = meta.full_name || meta.name || meta.display_name || sbUser.email?.split('@')[0] || 'Member'
@@ -18,7 +81,10 @@ function mapSupabaseUser(sbUser: SupabaseUser): User {
     ? new Date(sbUser.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : 'Recent'
 
+  const cachedPro = typeof localStorage !== 'undefined' && localStorage.getItem(`shadowcast_pro_${sbUser.id}`) === 'true'
+
   const isPro = Boolean(
+    cachedPro ||
     meta.is_pro ??
     meta.isPro ??
     (meta.plan && (meta.plan.toLowerCase().includes('pro') || meta.plan.toLowerCase().includes('ultra')))
@@ -32,7 +98,7 @@ function mapSupabaseUser(sbUser: SupabaseUser): User {
     avatar,
     isPro,
     plan,
-    connectedDevices: meta.connected_devices ?? meta.connectedDevices ?? (isPro ? 2 : 1),
+    connectedDevices: meta.connected_devices ?? meta.connectedDevices ?? (isPro ? 5 : 1),
     joinedAt,
   }
 }
@@ -60,9 +126,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer)
   }, [toast])
 
+  // Listen for immediate subscription updates from payments
+  useEffect(() => {
+    const handleSubscriptionUpdate = (e: Event) => {
+      const custom = e as CustomEvent<{ userId?: string; isPro?: boolean; maxDevices?: number }>
+      setUser((prev) => {
+        if (!prev) return null
+        const isPro = custom.detail?.isPro ?? true
+        const updated: User = {
+          ...prev,
+          isPro,
+          plan: isPro ? 'Creator Pro' : 'Creator',
+          connectedDevices: Math.max(prev.connectedDevices, custom.detail?.maxDevices || (isPro ? 5 : 1)),
+        }
+        localStorage.setItem('shadowcast_active_user', JSON.stringify(updated))
+        sessionStorage.setItem('shadowcast_active_user', JSON.stringify(updated))
+        return updated
+      })
+    }
+
+    window.addEventListener('shadowcast_subscription_updated', handleSubscriptionUpdate)
+    return () => window.removeEventListener('shadowcast_subscription_updated', handleSubscriptionUpdate)
+  }, [])
+
   // Initialize and listen to Supabase auth state changes
   useEffect(() => {
     let mounted = true
+
+    const syncProState = async (mapped: User) => {
+      try {
+        const proCheck = await checkUserIsPro(mapped.id, mapped.email)
+        if (proCheck.isPro && !mapped.isPro && mounted) {
+          const updatedUser: User = {
+            ...mapped,
+            isPro: true,
+            plan: 'Creator Pro',
+            connectedDevices: Math.max(mapped.connectedDevices, proCheck.maxDevices || 5),
+          }
+          setUser(updatedUser)
+          localStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
+          sessionStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
+          try {
+            await supabase.auth.updateUser({
+              data: {
+                is_pro: true,
+                isPro: true,
+                plan: 'Creator Pro',
+                max_devices: proCheck.maxDevices || 5,
+              },
+            })
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
 
     // 1. Initial Session Load
     authService.getSession().then((initialSession) => {
@@ -70,7 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(initialSession)
       if (initialSession?.user) {
         setSupabaseUser(initialSession.user)
-        setUser(mapSupabaseUser(initialSession.user))
+        const mapped = mapSupabaseUser(initialSession.user)
+        setUser(mapped)
+        syncProState(mapped)
         if (initialSession.user.email && isSuperAdminEmail(initialSession.user.email)) {
           adminAuthService.setAdminSessionForUser(
             initialSession.user.email,
@@ -103,7 +225,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (currentSession?.user) {
         setSupabaseUser(currentSession.user)
-        setUser(mapSupabaseUser(currentSession.user))
+        const mapped = mapSupabaseUser(currentSession.user)
+        setUser(mapped)
+        syncProState(mapped)
         if (currentSession.user.email && isSuperAdminEmail(currentSession.user.email)) {
           adminAuthService.setAdminSessionForUser(
             currentSession.user.email,
@@ -339,29 +463,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   /**
-   * Refresh User from Supabase Profiles
+   * Refresh User from Supabase Profiles, Subscriptions & Licenses
    */
   const refreshUser = useCallback(async (): Promise<void> => {
     if (!user?.id) return
     try {
+      const proCheck = await checkUserIsPro(user.id, user.email)
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle()
 
-      if (profile) {
-        const isPro = Boolean(profile.is_pro)
-        const updatedUser: User = {
-          ...user,
-          isPro,
-          plan: profile.plan || (isPro ? 'Creator Pro' : 'Creator'),
-          connectedDevices: profile.connected_devices ?? user.connectedDevices,
-        }
-        localStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
-        sessionStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
-        setUser(updatedUser)
+      const isPro = Boolean(proCheck.isPro || profile?.is_pro || user.isPro)
+      const plan = isPro ? 'Creator Pro' : (profile?.plan || user.plan || 'Creator')
+      const connectedDevices = profile?.connected_devices ?? (isPro ? 5 : user.connectedDevices)
+
+      const updatedUser: User = {
+        ...user,
+        isPro,
+        plan,
+        connectedDevices,
       }
+      localStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
+      sessionStorage.setItem('shadowcast_active_user', JSON.stringify(updatedUser))
+      if (isPro) {
+        localStorage.setItem(`shadowcast_pro_${user.id}`, 'true')
+      }
+      setUser(updatedUser)
     } catch (err) {
       console.warn('Failed to refresh user profile:', err)
     }

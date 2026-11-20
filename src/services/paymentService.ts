@@ -248,6 +248,20 @@ export async function activateRazorpaySubscription(params: {
       console.warn('[PaymentService] Profiles update notice:', profileError.message)
     }
 
+    // Also sync Supabase auth user metadata so session tokens retain is_pro
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          is_pro: true,
+          isPro: true,
+          plan: 'Creator Pro',
+          max_devices: targetPlan.maxDevices,
+        },
+      })
+    } catch {
+      // ignore
+    }
+
     // 3. Upsert into Licenses table (Authoritative desktop client sync)
     const { data: updatedLic } = await supabase
       .from('licenses')
@@ -587,16 +601,26 @@ export async function fetchUserSubscriptionInfo(
   }
 }
 
-function updateLocalUserCache(_userId: string, isPro: boolean, maxDevices: number) {
+function updateLocalUserCache(userId: string, isPro: boolean, maxDevices: number) {
   try {
     const raw = localStorage.getItem('shadowcast_active_user')
     if (raw) {
       const parsed = JSON.parse(raw)
       parsed.isPro = isPro
       parsed.plan = isPro ? 'Creator Pro' : 'Creator'
-      parsed.connectedDevices = Math.min(parsed.connectedDevices || 1, maxDevices)
+      parsed.connectedDevices = Math.max(parsed.connectedDevices || 1, maxDevices)
       localStorage.setItem('shadowcast_active_user', JSON.stringify(parsed))
       sessionStorage.setItem('shadowcast_active_user', JSON.stringify(parsed))
+    }
+    if (isPro && userId) {
+      localStorage.setItem(`shadowcast_pro_${userId}`, 'true')
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('shadowcast_subscription_updated', {
+          detail: { userId, isPro, maxDevices },
+        })
+      )
     }
   } catch {
     // ignore local storage errors
