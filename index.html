@@ -2,9 +2,51 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#050509" />
     <meta name="color-scheme" content="dark" />
+
+    <!-- Disable Browser Zoom (Ctrl/Cmd +, Ctrl/Cmd -, Ctrl/Cmd 0, Ctrl Wheel, Touch Gestures) -->
+    <script>
+      (function () {
+        function blockZoomKeyboard(e) {
+          if (e.ctrlKey || e.metaKey) {
+            var key = e.key;
+            var code = e.code;
+            var keyCode = e.keyCode || e.which;
+
+            var isZoomIn = key === '+' || key === '=' || code === 'Equal' || code === 'NumpadAdd' || keyCode === 187 || keyCode === 107;
+            var isZoomOut = key === '-' || key === '_' || code === 'Minus' || code === 'NumpadSubtract' || keyCode === 189 || keyCode === 109;
+            var isZoomReset = key === '0' || code === 'Digit0' || code === 'Numpad0' || keyCode === 48 || keyCode === 96;
+
+            if (isZoomIn || isZoomOut || isZoomReset) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          }
+        }
+
+        function blockZoomWheel(e) {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+          }
+        }
+
+        function blockGesture(e) {
+          e.preventDefault();
+        }
+
+        window.addEventListener('keydown', blockZoomKeyboard, { capture: true, passive: false });
+        document.addEventListener('keydown', blockZoomKeyboard, { capture: true, passive: false });
+
+        window.addEventListener('wheel', blockZoomWheel, { passive: false });
+        document.addEventListener('wheel', blockZoomWheel, { passive: false });
+
+        document.addEventListener('gesturestart', blockGesture);
+        document.addEventListener('gesturechange', blockGesture);
+        document.addEventListener('gestureend', blockGesture);
+      })();
+    </script>
 
     <!-- Technical SEO Primary Metadata -->
     <title>ShadowCast — Ultra Low-Latency Screen Mirroring for Windows</title>
