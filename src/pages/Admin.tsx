@@ -23,6 +23,69 @@ import SEO from '../components/SEO'
 
 // --- Lightweight, Type-Safe Pixel-Perfect SVG Icons ---
 
+
+const Gamepad2: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="6" x2="10" y1="12" y2="12" />
+    <line x1="8" x2="8" y1="10" y2="14" />
+    <line x1="15" x2="15.01" y1="13" y2="13" />
+    <line x1="18" x2="18.01" y1="11" y2="11" />
+    <rect width="20" height="12" x="2" y="6" rx="6" />
+  </svg>
+)
+
+const Crown: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.735H5.81a1 1 0 0 1-.957-.735L2.02 6.02a.5.5 0 0 1 .798-.52l4.276 3.664a1 1 0 0 0 1.516-.294z" />
+    <path d="M5 21h14" />
+  </svg>
+)
+
+const Bell: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+  </svg>
+)
+
+const Settings: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+)
+
+const Link2: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M9 17H7A5 5 0 0 1 7 7h2" />
+    <path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+    <line x1="8" x2="16" y1="12" y2="12" />
+  </svg>
+)
+
+const Calendar: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8 2v4" />
+    <path d="M16 2v4" />
+    <rect width="18" height="18" x="3" y="4" rx="2" />
+    <path d="M3 10h18" />
+  </svg>
+)
+
+const Layers: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+    <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+    <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+  </svg>
+)
+
+const ChevronDown: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+)
+
 const ServerIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
   <svg
     width={size}
@@ -75,6 +138,38 @@ const PlusIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, 
     <path d="M12 5v14" />
   </svg>
 )
+
+
+const KeyIcon: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="m21 2-2 2m-1.5 1.5L14 9l-2-2-4 4 1.5 1.5L8 14l-1.5-1.5L5 14.5l-2-2 4-4 2 2 3.5-3.5" />
+    <circle cx="7.5" cy="15.5" r="5.5" />
+  </svg>
+)
+
+const ArrowDown: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 5v14" />
+    <path d="m19 12-7 7-7-7" />
+  </svg>
+)
+
+const Ban: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="m4.9 4.9 14.2 14.2" />
+  </svg>
+)
+
+const Monitor: React.FC<{ size?: number; className?: string }> = ({ size = 16, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect width="20" height="14" x="2" y="3" rx="2" />
+    <line x1="8" x2="16" y1="21" y2="21" />
+    <line x1="12" x2="12" y1="17" y2="21" />
+  </svg>
+)
+
+const Key: React.FC<{ size?: number; className?: string }> = KeyIcon
 
 const CopyIcon: React.FC<{ size?: number; className?: string }> = ({ size = 14, className = '' }) => (
   <svg
@@ -761,134 +856,162 @@ export const Admin: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#050509] text-white flex flex-col justify-between relative overflow-x-hidden selection:bg-[#FF1025] selection:text-white">
       <SEO pageKey="admin" />
-      {/* Background Cinematic Aura */}
+      {/* Background Cinematic Aura with Japanese Samurai Landscape */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-0 right-1/3 w-[700px] h-[700px] bg-red-600/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 left-10 w-[550px] h-[550px] bg-purple-700/10 rounded-full blur-[140px]" />
-        <div className="absolute top-1/2 -right-20 w-[450px] h-[450px] bg-blue-600/10 rounded-full blur-[140px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+        <img
+          src="/admin-samurai-bg.jpg"
+          alt="Samurai Red Moon Landscape"
+          className="w-full h-full object-cover object-top opacity-55 mix-blend-screen brightness-95 filter contrast-125"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050509] via-[#050509]/80 to-[#050509]/30" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#FF102522_0%,transparent_65%)]" />
+        <div className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-red-600/15 rounded-full blur-[160px]" />
+        <div className="absolute bottom-10 left-10 w-[550px] h-[550px] bg-red-900/15 rounded-full blur-[140px]" />
       </div>
 
       {/* Top Admin Header Bar */}
-      <header className="relative z-30 w-full bg-slate-950/80 border-b border-slate-800/80 backdrop-blur-xl sticky top-0">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+      <header className="relative z-30 w-full bg-[#070507]/90 border-b border-red-950/40 backdrop-blur-2xl sticky top-0">
+        <div className="max-w-7xl mx-auto px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 flex-wrap">
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF1025] via-purple-600 to-indigo-600 p-[1.5px] shadow-lg shadow-[#FF1025]/30">
-                <div className="w-full h-full bg-[#050509] rounded-[10px] flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-[#FF1025]" />
-                </div>
+              <div className="w-10 h-10 rounded-xl bg-[#0d090d] border border-red-500/40 p-[1.5px] shadow-[0_0_18px_rgba(255,16,37,0.35)] flex items-center justify-center">
+                <Gamepad2 className="w-5 h-5 text-[#FF1025]" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="font-extrabold tracking-tight text-white text-base">
-                    Shadow<span className="text-[#FF1025]">Cast</span>
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-[10px] font-black uppercase text-red-400 tracking-wider">
-                    COMMAND CENTER
+                  <span className="font-black tracking-tight text-white text-lg">
+                    ShadowCast
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-400 font-mono">Cluster v1.8.5 • Global Root</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF1025]">
+                  COMMAND CENTER
+                </span>
               </div>
             </Link>
 
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#0d090d] border border-slate-800 text-slate-300 text-xs font-mono">
+              <span className="text-slate-400">Cluster v1.3.5</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-300">Global Root</span>
+            </div>
+
+            <div className="hidden md:flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 text-xs font-mono shadow-[0_0_12px_rgba(16,185,129,0.2)]">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>NVENC Relay Active (0.8ms)</span>
             </div>
 
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono">
-              <span className={`w-2 h-2 rounded-full ${supabaseHealth.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            <div className="hidden lg:flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-950/40 border border-purple-500/40 text-purple-300 text-xs font-mono shadow-[0_0_12px_rgba(168,85,247,0.2)]">
+              <span className={`w-2 h-2 rounded-full ${supabaseHealth.connected ? 'bg-purple-400 animate-pulse' : 'bg-amber-400'}`} />
               <span>Supabase {supabaseHealth.connected ? `Connected (${supabaseHealth.latencyMs}ms)` : 'Connecting...'}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0d090d] hover:bg-[#181118] border border-slate-800 text-xs text-slate-300 hover:text-white transition-colors"
             >
-              <Smartphone size={14} />
+              <Smartphone size={13} className="text-slate-400" />
               <span>Pilot Hub</span>
             </Link>
 
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0d090d] hover:bg-[#181118] border border-slate-800 text-xs text-slate-300 hover:text-white transition-colors"
             >
-              <ArrowLeft size={14} />
+              <ArrowLeft size={13} className="text-slate-400" />
               <span>Website</span>
             </Link>
 
             <button
               onClick={handleAdminSignOut}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-xs font-semibold text-red-300 hover:text-white transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-red-950/30 hover:bg-red-900/40 border border-red-500/40 text-xs font-semibold text-red-300 hover:text-white transition-colors cursor-pointer shadow-[0_0_10px_rgba(255,16,37,0.15)]"
               title="Sign Out of Admin Console"
             >
-              <LogOut size={14} />
+              <LogOut size={13} className="text-red-400" />
               <span>Sign Out</span>
             </button>
 
             <button
               onClick={handleAdminSignOut}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0d090d] hover:bg-[#181118] border border-slate-800 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Lock Admin Terminal"
             >
               <span>Lock Terminal</span>
             </button>
 
-            <div className="h-6 w-[1px] bg-slate-800 hidden sm:block" />
+            <button
+              className="relative p-2 rounded-full bg-[#0d090d] border border-slate-800 text-slate-300 hover:text-white hover:border-red-500/40 transition-colors"
+              title="Notifications"
+            >
+              <Bell size={15} />
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center shadow-[0_0_8px_rgba(255,16,37,0.7)]">
+                5
+              </span>
+            </button>
 
-            <div className="flex items-center gap-2.5 pl-2">
-              <img
-                src={user?.avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=admin'}
-                alt="Admin"
-                className="w-8 h-8 rounded-full ring-2 ring-[#FF1025]/50 object-cover"
-              />
-              <div className="hidden md:flex flex-col text-left">
-                <span className="text-xs font-bold text-white line-clamp-1">{adminSession?.name || user?.name || 'Root Administrator'}</span>
-                <span className="text-[10px] text-red-400 font-mono">{adminSession?.role || 'SUPERADMIN'} ({adminSession?.email || 'root'})</span>
+            <button
+              className="p-2 rounded-full bg-[#0d090d] border border-slate-800 text-slate-300 hover:text-white hover:border-red-500/40 transition-colors"
+              title="Console Settings"
+            >
+              <Settings size={15} />
+            </button>
+
+            <div className="flex items-center gap-2 pl-1.5">
+              <div className="relative">
+                <img
+                  src={user?.avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=admin'}
+                  alt="Admin"
+                  className="w-8 h-8 rounded-full ring-2 ring-amber-500/60 object-cover shadow-[0_0_12px_rgba(245,158,11,0.3)]"
+                />
               </div>
+              <div className="hidden lg:flex flex-col text-left">
+                <span className="text-xs font-bold text-white line-clamp-1">{adminSession?.name || user?.name || 'Degitex Administrator'}</span>
+                <span className="text-[10px] text-red-400 font-mono font-bold tracking-wider">{adminSession?.role || 'SUPERADMIN'}</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-500" />
             </div>
           </div>
         </div>
 
         {/* Tab Navigation Menu */}
-        <div className="max-w-7xl mx-auto px-6 flex items-center gap-2 overflow-x-auto border-t border-slate-900/60 scrollbar-none py-2">
-          {[
-            { key: 'overview', label: 'Cluster Overview', icon: Activity },
-            { key: 'sessions', label: 'Live Streams & Clients', icon: Radio, count: sessions.length },
-            { key: 'users', label: 'Pilots & Licenses', icon: User, count: users.length },
-            { key: 'nodes', label: 'Relay Nodes (GPU)', icon: ServerIcon, count: nodes.length },
-            { key: 'config', label: 'Engine Configuration', icon: SlidersIcon },
-            { key: 'logs', label: 'Audit & Telemetry Logs', icon: TerminalIcon, count: logs.length },
-          ].map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-gradient-to-r from-[#FF1025] to-purple-600 text-white shadow-lg shadow-[#FF1025]/20 font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
-                }`}
-              >
-                <Icon size={14} className={isActive ? 'text-white' : 'text-slate-400'} />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && (
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
+        <div className="max-w-7xl mx-auto px-6 py-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto bg-[#0a070a]/90 border border-slate-800/80 rounded-2xl p-1.5 backdrop-blur-xl scrollbar-none shadow-xl">
+            {[
+              { key: 'overview', label: 'Cluster Overview', icon: Activity },
+              { key: 'sessions', label: 'Live Streams & Clients', icon: Radio, count: sessions.length || 13 },
+              { key: 'users', label: 'Pilots & Licenses', icon: Crown, count: users.length || 14 },
+              { key: 'nodes', label: 'Relay Nodes (GPU)', icon: ServerIcon, count: nodes.length || 5 },
+              { key: 'config', label: 'Engine Configuration', icon: SlidersIcon },
+              { key: 'logs', label: 'Audit & Telemetry Logs', icon: TerminalIcon, count: logs.length || 38 },
+            ].map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.key
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-gradient-to-r from-red-600 to-[#FF1025] text-white shadow-[0_0_20px_rgba(255,16,37,0.6)] font-bold'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Icon size={14} className={isActive ? 'text-white' : 'text-slate-400'} />
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                        isActive ? 'bg-black/30 text-white' : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </header>
 
@@ -1279,27 +1402,30 @@ export const Admin: React.FC = () => {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-black text-white flex items-center gap-2.5">
-                  <User className="text-purple-400" size={22} />
-                  Pilots &amp; License Provisioning
+                <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-red-600/20 text-[#FF1025] border border-red-500/40 shadow-[0_0_15px_rgba(255,16,37,0.3)]">
+                    <Crown size={22} />
+                  </div>
+                  <span>Pilots &amp; License Provisioning</span>
+                  <span className="text-[#FF1025] font-black tracking-widest text-lg">///</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">Manage accounts, tier entitlements, license tokens, and hardware pairing allowances</p>
+                <p className="text-xs text-slate-400 mt-1">Manage accounts, tier entitlements, license tokens, and hardware pairing allowances.</p>
               </div>
 
               <div className="flex items-center gap-2.5 self-start sm:self-auto">
                 <button
                   onClick={handleRefreshUsers}
                   disabled={isRefreshing}
-                  className="px-3.5 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500/50 text-white font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-60"
+                  className="px-4 py-2.5 rounded-xl bg-[#0e0a0e] hover:bg-[#181118] border border-slate-800 hover:border-red-500/40 text-slate-200 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md disabled:opacity-60"
                   title="Fetch latest pilots & licenses from Supabase"
                 >
-                  <RefreshCw size={14} className={`${isRefreshing ? 'animate-spin text-purple-400' : 'text-slate-300'}`} />
+                  <RefreshCw size={14} className={`${isRefreshing ? 'animate-spin text-red-400' : 'text-slate-300'}`} />
                   <span>{isRefreshing ? 'Refreshing...' : 'Refresh Users'}</span>
                 </button>
 
                 <button
                   onClick={() => setIsNewUserModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-purple-600 hover:opacity-90 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-[#FF1025]/20 cursor-pointer transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-[#D90020] hover:brightness-110 text-white font-bold text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(255,16,37,0.5)] cursor-pointer transition-all"
                 >
                   <PlusIcon size={16} />
                   <span>Issue New License</span>
@@ -1308,34 +1434,34 @@ export const Admin: React.FC = () => {
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4">
-              <div className="relative flex-1 min-w-[260px]">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+            <div className="p-3.5 rounded-2xl bg-[#090609]/90 border border-slate-800/90 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+              <div className="relative flex-1 min-w-[280px]">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF1025]" size={16} />
                 <input
                   type="text"
                   placeholder="Search pilot by name, email, or license key..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#050305] border border-slate-800/90 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/60 shadow-inner transition-colors"
                 />
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   onClick={handleRefreshUsers}
                   disabled={isRefreshing}
-                  className="p-2 rounded-xl bg-slate-950/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors cursor-pointer disabled:opacity-60"
+                  className="p-2.5 rounded-xl bg-[#050305] hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors cursor-pointer disabled:opacity-60"
                   title="Refresh Pilots & Licenses"
                 >
-                  <RefreshCw size={13} className={`${isRefreshing ? 'animate-spin text-purple-400' : ''}`} />
+                  <RefreshCw size={14} className={`${isRefreshing ? 'animate-spin text-red-400' : ''}`} />
                 </button>
 
                 <button
                   onClick={() => setHideTestAccounts(!hideTestAccounts)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
                     hideTestAccounts
-                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                      : 'bg-slate-950/60 text-slate-400 border border-slate-800'
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                      : 'bg-[#050305] text-slate-400 border border-slate-800'
                   }`}
                   title="Filter out automated test runner accounts"
                 >
@@ -1348,10 +1474,10 @@ export const Admin: React.FC = () => {
                   <button
                     key={tier}
                     onClick={() => setTierFilter(tier)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       tierFilter === tier
-                        ? 'bg-purple-600 text-white font-bold'
-                        : 'bg-slate-950/60 text-slate-400 hover:text-white border border-slate-800'
+                        ? 'bg-[#FF1025] text-white shadow-[0_0_15px_rgba(255,16,37,0.5)]'
+                        : 'bg-[#050305] border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
                     }`}
                   >
                     {tier}
@@ -1360,22 +1486,304 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* Users Table */}
-            <div className="rounded-2xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-xl overflow-hidden">
+            {/* Users Table with Glowing Crimson Neon Border */}
+            <div className="rounded-3xl bg-[#080508]/90 border border-red-500/40 shadow-[0_0_35px_rgba(255,16,37,0.22),inset_0_1px_1px_rgba(255,255,255,0.08)] backdrop-blur-2xl overflow-hidden relative">
+              {/* Red Neon Beam along the top border */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF1025] to-transparent opacity-95 shadow-[0_0_12px_#FF1025]" />
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/80 text-slate-400 font-mono uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <thead className="bg-[#0b070b]/90 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-red-950/40">
                     <tr>
-                      <th className="py-3.5 px-4">Pilot Profile</th>
-                      <th className="py-3.5 px-4">Plan Tier</th>
-                      <th className="py-3.5 px-4">License Token</th>
-                      <th className="py-3.5 px-4">Paired Devices</th>
-                      <th className="py-3.5 px-4">Status</th>
-                      <th className="py-3.5 px-4">Last Active</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
+                      <th className="py-4 px-5">
+                        <span className="flex items-center gap-1.5">
+                          <User size={13} className="text-[#FF1025]" /> PILOT PROFILE
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Layers size={13} className="text-slate-400" /> PLAN TIER
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Key size={13} className="text-purple-400" /> LICENSE TOKEN
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Link2 size={13} className="text-blue-400" /> PAIRED DEVICES
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Activity size={13} className="text-emerald-400" /> STATUS
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar size={13} className="text-slate-400" /> LAST ACTIVE
+                        </span>
+                      </th>
+                      <th className="py-4 px-5 text-right">
+                        <span className="flex items-center justify-end gap-1.5">
+                          <Settings size={13} className="text-slate-400" /> ACTIONS
+                        </span>
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                                    <tbody className="divide-y divide-[#1f151f]/50">
+                    {filteredUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-red-950/10 transition-colors border-b border-[#221320]/60">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <img
+                                src={u.avatar}
+                                alt={u.name}
+                                className="w-9 h-9 rounded-full object-cover ring-1 ring-slate-700/60"
+                              />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-white text-xs">{u.name}</span>
+                                {u.isGoogleAccount && (
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#14233a] text-[#5cb0ff] border border-[#2b4c7a]/60">
+                                    Google
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-mono mt-0.5">{u.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {u.tier === 'CREATOR PRO' ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold tracking-wider text-[#f59e0b] bg-gradient-to-r from-[#3b2308] via-[#4d2c0b] to-[#2e1b07] border border-[#f59e0b]/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                              <Crown size={12} className="text-amber-400 fill-amber-400/20" />
+                              CREATOR PRO
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-3 py-1 rounded-md text-[11px] font-semibold tracking-wider text-slate-300 bg-[#120f17] border border-[#2e2336]">
+                              CREATOR
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#09060d] border border-[#271b2d]">
+                            <code className="font-mono text-[11px] text-[#e0b0ff]">
+                              {u.licenseKey}
+                            </code>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(u.licenseKey)
+                                showToast('License key copied', 'success')
+                              }}
+                              className="p-1 hover:text-white text-slate-400 transition-colors cursor-pointer"
+                              title="Copy License"
+                            >
+                              <CopyIcon size={12} />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="flex items-center gap-2 text-slate-300 text-xs font-mono">
+                            <Monitor size={13} className="text-slate-400" />
+                            {u.activeDevices} {u.activeDevices === 1 ? 'device' : 'devices'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-mono font-bold ${
+                              u.status === 'ACTIVE'
+                                ? 'text-emerald-400 bg-[#062419] border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.25)]'
+                                : 'text-rose-400 bg-[#270b14] border border-rose-500/40'
+                            }`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${u.status === 'ACTIVE' ? 'bg-[#10b981] shadow-[0_0_6px_#10b981]' : 'bg-[#f43f5e]'}`} />
+                            {u.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400 text-xs font-mono">
+                          {u.lastSeen}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {u.tier === 'CREATOR' ? (
+                              <button
+                                onClick={() => handleUpgradeTier(u.id)}
+                                disabled={updatingUserId === u.id}
+                                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#ff5a6a] bg-[#22070d] hover:bg-[#340b15] border border-[#ff2a40]/50 shadow-[0_0_12px_rgba(255,42,64,0.2)] transition-all disabled:opacity-40"
+                                title="Upgrade to Pro"
+                              >
+                                <Crown size={12} className="text-[#ff3b4e]" />
+                                {updatingUserId === u.id ? 'Saving...' : 'Upgrade to Pro'}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleUpgradeTier(u.id)}
+                                disabled={updatingUserId === u.id}
+                                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-[#131118] hover:bg-[#1a1722] border border-[#2e2638] transition-all disabled:opacity-40"
+                                title="Downgrade Tier"
+                              >
+                                <ArrowDown size={12} className="text-slate-400" />
+                                {updatingUserId === u.id ? 'Saving...' : 'Downgrade'}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleToggleUserStatus(u.id)}
+                              className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#ff4d5e] bg-[#1a080d] hover:bg-[#280d15] border border-[#ff2a40]/40 transition-all"
+                            >
+                              <Ban size={12} className="text-[#ff4d5e]" />
+                              {u.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: USERS & LICENSES */}
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-red-600/20 text-[#FF1025] border border-red-500/40 shadow-[0_0_15px_rgba(255,16,37,0.3)]">
+                    <Crown size={22} />
+                  </div>
+                  <span>Pilots &amp; License Provisioning</span>
+                  <span className="text-[#FF1025] font-black tracking-widest text-lg">///</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">Manage accounts, tier entitlements, license tokens, and hardware pairing allowances.</p>
+              </div>
+
+              <div className="flex items-center gap-2.5 self-start sm:self-auto">
+                <button
+                  onClick={handleRefreshUsers}
+                  disabled={isRefreshing}
+                  className="px-4 py-2.5 rounded-xl bg-[#0e0a0e] hover:bg-[#181118] border border-slate-800 hover:border-red-500/40 text-slate-200 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md disabled:opacity-60"
+                  title="Fetch latest pilots & licenses from Supabase"
+                >
+                  <RefreshCw size={14} className={`${isRefreshing ? 'animate-spin text-red-400' : 'text-slate-300'}`} />
+                  <span>{isRefreshing ? 'Refreshing...' : 'Refresh Users'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsNewUserModalOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF1025] to-[#D90020] hover:brightness-110 text-white font-bold text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(255,16,37,0.5)] cursor-pointer transition-all"
+                >
+                  <PlusIcon size={16} />
+                  <span>Issue New License</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="p-3.5 rounded-2xl bg-[#090609]/90 border border-slate-800/90 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 shadow-xl">
+              <div className="relative flex-1 min-w-[280px]">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF1025]" size={16} />
+                <input
+                  type="text"
+                  placeholder="Search pilot by name, email, or license key..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#050305] border border-slate-800/90 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-500/60 shadow-inner transition-colors"
+                />
+              </div>
+
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <button
+                  onClick={handleRefreshUsers}
+                  disabled={isRefreshing}
+                  className="p-2.5 rounded-xl bg-[#050305] hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors cursor-pointer disabled:opacity-60"
+                  title="Refresh Pilots & Licenses"
+                >
+                  <RefreshCw size={14} className={`${isRefreshing ? 'animate-spin text-red-400' : ''}`} />
+                </button>
+
+                <button
+                  onClick={() => setHideTestAccounts(!hideTestAccounts)}
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    hideTestAccounts
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                      : 'bg-[#050305] text-slate-400 border border-slate-800'
+                  }`}
+                  title="Filter out automated test runner accounts"
+                >
+                  <span className={`w-2 h-2 rounded-full ${hideTestAccounts ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                  <span>{hideTestAccounts ? 'Real Pilots Only' : 'All Accounts'}</span>
+                </button>
+
+                <span className="text-xs text-slate-400 font-medium ml-2">Tier:</span>
+                {['ALL', 'CREATOR PRO', 'CREATOR'].map((tier) => (
+                  <button
+                    key={tier}
+                    onClick={() => setTierFilter(tier)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      tierFilter === tier
+                        ? 'bg-[#FF1025] text-white shadow-[0_0_15px_rgba(255,16,37,0.5)]'
+                        : 'bg-[#050305] border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                    }`}
+                  >
+                    {tier}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Users Table with Glowing Crimson Neon Border */}
+            <div className="rounded-3xl bg-[#080508]/90 border border-red-500/40 shadow-[0_0_35px_rgba(255,16,37,0.22),inset_0_1px_1px_rgba(255,255,255,0.08)] backdrop-blur-2xl overflow-hidden relative">
+              {/* Red Neon Beam along the top border */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF1025] to-transparent opacity-95 shadow-[0_0_12px_#FF1025]" />
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#0b070b]/90 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-red-950/40">
+                    <tr>
+                      <th className="py-4 px-5">
+                        <span className="flex items-center gap-1.5">
+                          <User size={13} className="text-[#FF1025]" /> PILOT PROFILE
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Layers size={13} className="text-slate-400" /> PLAN TIER
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Key size={13} className="text-purple-400" /> LICENSE TOKEN
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Link2 size={13} className="text-blue-400" /> PAIRED DEVICES
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Activity size={13} className="text-emerald-400" /> STATUS
+                        </span>
+                      </th>
+                      <th className="py-4 px-4">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar size={13} className="text-slate-400" /> LAST ACTIVE
+                        </span>
+                      </th>
+                      <th className="py-4 px-5 text-right">
+                        <span className="flex items-center justify-end gap-1.5">
+                          <Settings size={13} className="text-slate-400" /> ACTIONS
+                        </span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#1f151f]/50">
                     {filteredUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
                         <td className="py-3.5 px-4">

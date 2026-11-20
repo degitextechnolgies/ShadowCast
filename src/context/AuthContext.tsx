@@ -85,9 +85,9 @@ function mapSupabaseUser(sbUser: SupabaseUser): User {
 
   const isPro = Boolean(
     cachedPro ||
-    meta.is_pro ??
-    meta.isPro ??
-    (meta.plan && (meta.plan.toLowerCase().includes('pro') || meta.plan.toLowerCase().includes('ultra')))
+    Boolean(meta.is_pro) ||
+    Boolean(meta.isPro) ||
+    Boolean(meta.plan && (meta.plan.toLowerCase().includes('pro') || meta.plan.toLowerCase().includes('ultra')))
   )
   const plan = isPro ? 'Creator Pro' : 'Creator'
 

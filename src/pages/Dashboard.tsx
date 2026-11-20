@@ -12,7 +12,6 @@ import {
   Shield,
   Sparkles,
   ShieldCheck,
-  CreditCard,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
